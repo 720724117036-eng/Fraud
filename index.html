@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FraudPulse Net • AI Fraud Operations</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#06152f;color:#eef7ff}
+header{min-height:72px;padding:0 4%;display:flex;align-items:center;justify-content:space-between;background:#061126;border-bottom:1px solid #17385e;position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:10px}.brand-icon,.brand-mark{display:grid;place-items:center;background:#ffbd35;color:#172033;border-radius:12px;width:38px;height:38px}.brand b{font-size:18px}
+nav{display:flex;align-items:center;gap:18px;flex-wrap:wrap}nav a{color:#9bb2cf;text-decoration:none;font-size:14px}nav a:hover{color:#fff}.logout{color:#ffbd35}.user-pill{padding:8px 10px;border:1px solid #214b78;border-radius:20px;color:#9bb2cf;font-size:11px}
+main{max-width:1250px;margin:auto}.hero{padding:48px 20px 25px;display:flex;justify-content:space-between;gap:20px}.hero small,.eyebrow{color:#39e5d1;letter-spacing:2px}.hero h1{font-size:43px;margin:10px 0}.hero p,.muted{color:#91a9c8}.live{color:#47f0d0;border:1px solid #1bbfae;border-radius:20px;padding:10px 16px;align-self:flex-start}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:0 20px 20px}.metrics>div,.panel,.steps>div{background:linear-gradient(145deg,#10386f,#092651);border:1px solid #1d5687;border-radius:15px}.metrics>div{padding:18px;color:#8fa8c8;font-size:11px}.metrics strong{display:block;color:#fff;font-size:29px;margin-top:8px}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px;padding:0 20px 30px}.panel{padding:22px;overflow:hidden}.head{display:flex;justify-content:space-between;align-items:center;gap:12px}.head p{color:#8fa8c8;font-size:12px}.stream-note{padding:11px 13px;margin:12px 0;background:#0a315c;border-left:3px solid #39e5d1;color:#a8bfd8;font-size:12px}
+button,.button{background:#ffbd35;color:#172033;border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}.secondary{background:#123b69;color:#dbeaff}.wide{width:100%;text-align:center;margin-top:14px}.primary{background:#ffbd35}
+table{width:100%;border-collapse:collapse}th,td{padding:14px 9px;border-bottom:1px solid #1a4268;text-align:left;font-size:13px}th{color:#7994b4;font-size:10px}td a{color:#a9eaff;text-decoration:none}
+.decision-CLEARED{color:#2cf0c3!important}.decision-FLAGGED{color:#ff6871!important}.decision-WATCH{color:#ffd15b!important}
+.activity{padding:12px;margin:8px 0;border-radius:9px;background:#0a315c;border-left:3px solid #31e7d0}.activity.flagged{border-color:#ff5d6a}.activity.watch{border-color:#ffd15b}
+.signal{padding:13px;margin:8px 0;background:#0b315c;border-left:3px solid #31e7d0;display:flex;justify-content:space-between;gap:12px}.signal.critical{border-color:#ff5d6a}.signal.warning{border-color:#ffd15b}.signal.good{border-color:#31e7d0}.signal span{font-size:10px;color:#9bb2cf}
+.features{display:grid;grid-template-columns:1fr 1fr;gap:10px}.features div,.mini-grid div{padding:11px;background:#0a315c;border-radius:8px}.features b{float:right}.explain{line-height:1.7;font-size:15px}
+.tabs{padding:0 20px 15px}.tabs button{background:#12345e;color:#b4c8df;margin-right:7px}.review{display:grid;grid-template-columns:1fr 1fr;gap:20px}.review label,form label{display:block;color:#9db2cb;margin:10px 0 5px}.review input,.review select,.review textarea,form input{width:100%;padding:11px;background:#061a38;color:white;border:1px solid #2a557f;border-radius:8px}.review textarea{height:110px}.review button{width:100%;margin-top:12px}.hidden{display:none}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 20px 25px}.steps>div{padding:23px}.steps b{color:#39e5d1}.steps p{color:#9db2cb;line-height:1.55}.quote{padding:16px;border-left:3px solid #ffbd35;background:#15304f;color:#dce9f7;line-height:1.6}
+.feature-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.feature-cards div{padding:16px;background:#0a315c;border-radius:10px}.feature-cards b,.feature-cards span{display:block}.feature-cards span{color:#9db2cb;margin-top:7px;font-size:13px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px}.form-grid .wide{grid-column:1/-1}.result-panel{min-height:100%}.big-score{font-size:58px;font-weight:800;color:#ffbd35;margin-top:15px}.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.mini-grid strong{display:block;color:#fff;margin-top:4px}
+.workflow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.workflow div{background:#0a315c;padding:13px;border-radius:9px;color:#39e5d1}.workflow b,.workflow span{display:block;color:#fff}.workflow span{font-size:12px;color:#9db2cb;margin-top:4px}
+.alert{padding:12px;border:1px solid #ff5d6a;background:#3b1b2a;color:#ffdce0;border-radius:8px;margin:12px 0}
+.login-page{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 0,#123d70,#06152f 55%)}.login-wrap{width:min(460px,92vw)}.login-card{background:linear-gradient(145deg,#10386f,#092651);border:1px solid #1d5687;border-radius:20px;padding:32px;box-shadow:0 25px 80px #0007}.brand-mark{margin-bottom:18px}.login-card h1{font-size:34px;margin:10px 0}.login-card form{margin-top:20px}.role-row{display:flex;gap:8px;margin:20px 0;flex-wrap:wrap}.role-chip{background:#0b315c;color:#b9cde3;border:1px solid #24527e}.role-chip.active{background:#ffbd35;color:#172033}.demo-note{margin-top:18px;padding:13px;background:#081d3b;border-radius:9px;color:#9db2cb;font-size:12px}.demo-note code{color:#fff}
+@media(max-width:900px){nav{gap:10px}.grid,.review{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.steps{grid-template-columns:1fr}.feature-cards{grid-template-columns:1fr 1fr}.hero h1{font-size:34px}}
+@media(max-width:600px){header{align-items:flex-start;padding:15px;gap:12px;flex-direction:column}.form-grid{grid-template-columns:1fr}.feature-cards{grid-template-columns:1fr}.hero{padding-top:30px}}
+
+/* Landing / presentation home */
+.landing-page{min-height:100vh;background:radial-gradient(circle at 75% 25%,#173d6c 0,#081a37 35%,#030d20 75%);color:#eef7ff}
+.landing-header{position:sticky;top:0;z-index:10;min-height:76px;padding:0 4%;background:rgba(3,13,32,.88);backdrop-filter:blur(14px);border-bottom:1px solid #16365b;display:flex;align-items:center;justify-content:space-between}
+.brand-link{text-decoration:none;color:#eef7ff}.landing-header nav{gap:26px}.landing-header nav a{font-size:14px;color:#d0def0}.header-ghost{padding:11px 17px;border:1px solid #375b82;border-radius:9px}.header-cta{padding:12px 19px!important;background:#ffb21f;color:#15213a!important;border-radius:9px;font-weight:800}
+.landing-main{max-width:1400px;margin:auto}.landing-hero{min-height:650px;padding:75px 4% 55px;display:grid;grid-template-columns:1.03fr .97fr;gap:45px;align-items:center;position:relative;overflow:hidden}.landing-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,20,43,.85),transparent 70%);pointer-events:none}.hero-copy,.hero-console{position:relative;z-index:1}.hero-kicker,.section-kicker{color:#36e5d0;letter-spacing:2.5px;font-size:12px;font-weight:800}.hero-kicker span{color:#ffb21f}.hero-copy h1{font-size:clamp(52px,6vw,82px);line-height:.98;letter-spacing:-3px;margin:18px 0 22px}.hero-copy h1 em{font-style:normal;color:#ffad19}.hero-copy>p{max-width:650px;font-size:18px;line-height:1.65;color:#a9bdd7}.hero-actions{display:flex;gap:14px;align-items:center;margin-top:28px}.hero-button{background:#ffb21f;color:#15213a;text-decoration:none;font-weight:800;padding:15px 22px;border-radius:9px}.hero-secondary{color:#d9e7f7;text-decoration:none;padding:14px 6px}.trust-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:28px;color:#8fa9c7;font-size:12px}.hero-console{border:1px solid #23618f;border-radius:18px;background:linear-gradient(145deg,rgba(14,58,105,.94),rgba(5,28,59,.96));box-shadow:0 30px 90px rgba(0,0,0,.35);padding:20px;transform:rotate(.2deg)}.console-top{display:flex;align-items:center;gap:12px;padding-bottom:17px;border-bottom:1px solid #285681;font-size:12px}.console-top>span:last-child{margin-left:auto;color:#8ba8c7}.live-dot{color:#42efd5!important}.console-grid{display:grid;grid-template-columns:1.65fr .85fr;gap:14px;padding:18px 0}.chart-card,.alert-card{background:rgba(5,25,54,.72);border:1px solid #1e4d7b;border-radius:12px;padding:15px}.chart-title{font-weight:700;font-size:14px}.fake-chart{height:190px;margin-top:12px;position:relative;overflow:hidden;background:repeating-linear-gradient(to bottom,transparent 0,transparent 37px,rgba(130,174,214,.1) 38px)}.chart-line{position:absolute;left:0;right:0;bottom:24px;height:120px;background:linear-gradient(135deg,transparent 0 48%,#28dfcf 49% 50%,transparent 51%);clip-path:polygon(0 80%,8% 76%,16% 81%,24% 74%,32% 78%,40% 72%,48% 74%,55% 65%,62% 70%,68% 55%,74% 58%,80% 43%,86% 45%,91% 24%,96% 10%,100% 0,100% 100%,0 100%);filter:drop-shadow(0 0 8px #29e4d1)}.threshold{position:absolute;left:0;right:0;top:52%;border-top:1px dashed #e6c34f}.chart-axis{display:flex;justify-content:space-between;color:#6f8ba9;font-size:10px}.alert-card{display:flex;flex-direction:column;gap:14px}.alert-label{font-size:10px;color:#ff6971;font-weight:800}.alert-card strong{font-size:18px;line-height:1.25}.alert-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;color:#7f9bbb;font-size:10px}.alert-stats b{font-size:18px;color:#f3f8ff}.alert-card small{color:#91a9c6;line-height:1.5}.console-bottom{border-top:1px solid #285681;padding-top:15px;display:flex;gap:10px;align-items:center;font-size:12px;color:#a9bed7}.action-pill{margin-left:auto;padding:8px 13px;background:#ff4f59;color:#fff;border-radius:7px;font-weight:800}.action-pill.dim{margin-left:0;background:#183b64;color:#a9bdd6}
+.landing-lower{display:grid;grid-template-columns:1.35fr .65fr;gap:30px;padding:35px 4% 70px}.solution-panel{padding:35px 0}.solution-panel h2,.landing-info h2{font-size:42px;line-height:1.05;margin:12px 0 16px}.solution-panel>p,.landing-info p{max-width:760px;color:#9db4cf;line-height:1.7}.solution-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:25px}.solution-cards div{padding:18px;background:#092651;border:1px solid #194b7b;border-radius:12px}.solution-cards b{display:block;color:#fff}.solution-cards span{display:block;color:#8fa9c5;font-size:12px;line-height:1.5;margin-top:8px}.signin-card{align-self:start;background:linear-gradient(145deg,#103c78,#092654);border:1px solid #2b6595;border-radius:18px;padding:28px;box-shadow:0 25px 70px rgba(0,0,0,.28)}.signin-card h2{font-size:30px;margin:10px 0}.signin-card>p{color:#9db4cf;line-height:1.5}.admin-select{width:100%;padding:12px 14px;border-radius:9px;border:1px solid #2e638d;background:#0a315c;color:#dbe9f7;font-weight:800;cursor:pointer;margin:14px 0 8px}.admin-select.active{background:#ffb21f;color:#17233a;border-color:#ffb21f}.signin-card label{display:block;color:#a7bdd6;margin:11px 0 6px}.signin-card input{width:100%;padding:13px;background:#061a38;color:white;border:1px solid #2b5a83;border-radius:9px}.signin-card .primary{margin-top:16px}.landing-info{margin:0 4%;padding:55px 0;border-top:1px solid #173b62;display:grid;grid-template-columns:1fr 1fr;gap:45px}.landing-info p{margin-top:8px}.landing-page .alert{margin:12px 0}.landing-page .demo-note{margin-top:17px}
+@media(max-width:1000px){.landing-hero,.landing-lower,.landing-info{grid-template-columns:1fr}.hero-console{max-width:760px}.signin-card{max-width:600px;width:100%;justify-self:center}.solution-cards{grid-template-columns:1fr}.landing-header nav a:nth-child(-n+3){display:none}}
+@media(max-width:600px){.landing-header{padding:12px 4%;}.header-ghost{display:none}.landing-hero{padding-top:48px}.hero-copy h1{letter-spacing:-2px;font-size:48px}.console-grid{grid-template-columns:1fr}.landing-info h2,.solution-panel h2{font-size:34px}}
+
+
+/* ===== FraudPulse motion layer ===== */
+html{scroll-behavior:smooth}
+body{overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:9998;background:radial-gradient(circle at var(--mx,50%) var(--my,30%),rgba(57,229,208,.07),transparent 22%);transition:background .18s ease}
+.scroll-progress{position:fixed;top:0;left:0;width:100%;height:3px;z-index:10001;background:transparent}.scroll-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#39e5d1,#ffbd35,#ff5d6a);box-shadow:0 0 12px rgba(57,229,208,.7)}
+.cursor-dot,.cursor-ring{position:fixed;left:0;top:0;pointer-events:none;z-index:10000;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .2s ease}.cursor-dot{width:7px;height:7px;background:#ffbd35;box-shadow:0 0 15px rgba(255,189,53,.9)}.cursor-ring{width:34px;height:34px;border:1px solid rgba(57,229,208,.8);transition:width .2s,height .2s,border-color .2s,opacity .2s;mix-blend-mode:screen}.cursor-ring.hover{width:52px;height:52px;border-color:#ffbd35;background:rgba(255,189,53,.05)}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}.reveal.visible{opacity:1;transform:none}.reveal-delay-1{transition-delay:.08s}.reveal-delay-2{transition-delay:.16s}.reveal-delay-3{transition-delay:.24s}
+.landing-hero .hero-copy{animation:heroIn .8s ease both}.landing-hero .hero-console{animation:consoleIn 1s .12s cubic-bezier(.2,.8,.2,1) both}.hero-console{animation:floatConsole 5s ease-in-out infinite alternate}
+.fake-chart .chart-line{animation:chartPulse 2.8s ease-in-out infinite alternate;transform-origin:center}.threshold{animation:thresholdPulse 2s ease-in-out infinite}.live-dot{animation:liveBlink 1.4s ease-in-out infinite}.action-pill{animation:actionGlow 1.8s ease-in-out infinite alternate}
+.admin-select{transition:transform .2s ease,box-shadow .2s ease}.admin-select:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(255,189,53,.18)}
+button,.button,.hero-button,.header-cta,.header-ghost{transition:transform .2s ease,box-shadow .2s ease,filter .2s ease}button:hover,.button:hover,.hero-button:hover,.header-cta:hover,.header-ghost:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(32,184,255,.14);filter:brightness(1.04)}
+.panel,.metrics>div,.solution-cards div,.signin-card,.chart-card,.alert-card{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}.panel:hover,.metrics>div:hover,.solution-cards div:hover,.signin-card:hover,.chart-card:hover,.alert-card:hover{transform:translateY(-3px);box-shadow:0 18px 45px rgba(0,0,0,.16);border-color:#2b6e9e}
+@keyframes heroIn{from{opacity:0;transform:translateX(-25px)}to{opacity:1;transform:none}}
+@keyframes consoleIn{from{opacity:0;transform:translateX(30px) scale(.97)}to{opacity:1;transform:rotate(.2deg) scale(1)}}
+@keyframes floatConsole{from{translate:0 0}to{translate:0 -7px}}
+@keyframes chartPulse{from{transform:scaleY(.92);opacity:.78}to{transform:scaleY(1.05);opacity:1}}
+@keyframes thresholdPulse{50%{opacity:.35}}
+@keyframes liveBlink{50%{opacity:.35;transform:scale(1.12)}}
+@keyframes actionGlow{to{box-shadow:0 0 20px rgba(255,79,89,.35)}}
+@media(pointer:coarse){.cursor-dot,.cursor-ring{display:none}body::before{display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}.landing-hero .hero-copy,.landing-hero .hero-console,.hero-console,.fake-chart .chart-line,.threshold,.live-dot,.action-pill{animation:none!important}*{transition-duration:.01ms!important}}
+
+</style>
+</head>
+<body class="landing-page">
+
+<!-- ============ LANDING / LOGIN PAGE ============ -->
+<div id="page-login" class="page landing-page">
+  <header class="landing-header">
+    <a class="brand brand-link" href="#login"><span class="brand-icon">🛡️</span><b>FraudPulse Net</b></a>
+    <nav>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#how">How it works</a>
+      <a href="#governance">Governance</a>
+      <a class="header-ghost" href="#signin">Request access</a>
+      <a class="header-cta" href="#signin">View demo →</a>
+    </nav>
+  </header>
+
+  <main class="landing-main">
+    <section class="landing-hero">
+      <div class="hero-copy">
+        <div class="hero-kicker"><span>●</span> AI-POWERED • HUMAN-GOVERNED • REAL-TIME</div>
+        <h1>Detect Fraud<br>Spikes Before<br>They <em>Escalate.</em></h1>
+        <p>Real-time fraud-spike detection with automatic AI scoring, explainable investigation, and a human-in-the-loop review process.</p>
+        <div class="hero-actions">
+          <a class="hero-button" href="#signin">View demo →</a>
+          <a class="hero-secondary" href="#how">See how it works</a>
+        </div>
+        <div class="trust-row"><span>✓ Automatic transaction scoring</span><span>✓ Explainable decisions</span><span>✓ Human review</span></div>
+      </div>
+
+      <div class="hero-console">
+        <div class="console-top"><span class="live-dot">LIVE</span><b>Fraud Spike Detected</b><span>10:18 AM</span></div>
+        <div class="console-grid">
+          <div class="chart-card">
+            <div class="chart-title">Fraud Spike Activity</div>
+            <div class="fake-chart"><div class="chart-line"></div><div class="threshold"></div></div>
+            <div class="chart-axis"><span>08:00</span><span>09:30</span><span>11:00</span><span>12:30</span><span>14:00</span></div>
+          </div>
+          <div class="alert-card">
+            <span class="alert-label">ACTIVE ALERT</span>
+            <strong>Emerging Fraud Spike Detected</strong>
+            <div class="alert-stats"><span>Relative increase<br><b>+312%</b></span><span>Total impact<br><b>₹18.62K</b></span></div>
+            <small>Anomalous velocity detected<br>in high-risk channel</small>
+          </div>
+        </div>
+        <div class="console-bottom"><span>Analyst Action</span><span class="action-pill">REVIEW</span><span class="action-pill dim">REJECT</span></div>
+      </div>
+    </section>
+
+    <section class="landing-lower" id="signin">
+      <div class="solution-panel" id="capabilities">
+        <span class="section-kicker">THE SOLUTION</span>
+        <h2>From transaction<br>to decision in seconds.</h2>
+        <p>FraudPulse continuously scores incoming transactions, highlights the signals behind a decision, and routes high-risk activity to an analyst instead of relying on a black-box alert.</p>
+        <div class="solution-cards">
+          <div><b>01 · Detect</b><span>Every incoming transaction is scored automatically.</span></div>
+          <div><b>02 · Explain</b><span>Risk signals show why the model reacted.</span></div>
+          <div><b>03 · Review</b><span>Analysts can investigate, record outcomes, and close incidents.</span></div>
+        </div>
+      </div>
+
+      <aside class="signin-card">
+        <div class="brand-mark">🛡️</div>
+        <span class="section-kicker">SECURE RISK OPERATIONS</span>
+        <h2>Sign in to FraudPulse</h2>
+        <p>Access the live fraud command center and analyst tools.</p>
+        <div class="alert hidden" id="loginError"></div>
+        <button type="button" class="admin-select active" id="adminButton" onclick="fillAdmin()">Admin</button>
+        <form id="loginForm" onsubmit="return doLogin(event)">
+          <input type="hidden" name="role" value="Admin">
+          <label>Username</label>
+          <input id="username" name="username" autocomplete="username" placeholder="Click Admin to fill" required>
+          <label>Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Click Admin to fill" required>
+          <button class="primary wide" type="submit">Enter Command Center →</button>
+        </form>
+        <div class="demo-note"><b>Demo Admin</b><br>Click <b>Admin</b> and the demo credentials are filled automatically.</div>
+      </aside>
+    </section>
+
+    <section class="landing-info" id="how">
+      <div><span class="section-kicker">HOW IT WORKS</span><h2>Automatic detection + human judgment.</h2></div>
+      <p>Transactions enter the stream, the trained model produces a fraud probability, risk signals explain the result, and high-risk records become incidents for human review. Lower-risk records are cleared or watched.</p>
+    </section>
+    <section class="landing-info" id="governance">
+      <div><span class="section-kicker">GOVERNANCE</span><h2>AI recommends. Humans decide.</h2></div>
+      <p>The demo keeps an auditable path from model score to investigation outcome, including reviewer notes and the final human-verified result.</p>
+    </section>
+  </main>
+</div>
+
+<!-- ============ APP HEADER (shared by internal pages) ============ -->
+<div id="appChrome" class="hidden">
+<header>
+  <div class="brand"><span class="brand-icon">🛡️</span><b>FraudPulse Net</b></div>
+  <nav>
+    <a href="#/">Command Center</a>
+    <a href="#/incidents">Incidents</a>
+    <a href="#/manual">Manual Analysis</a>
+    <a href="#/explanation">How it works</a>
+    <span class="user-pill" id="userPill">Admin · admin@fraudpulse.local</span>
+    <a class="logout" href="#logout">Logout</a>
+  </nav>
+</header>
+</div>
+
+<!-- ============ COMMAND CENTER ============ -->
+<div id="page-home" class="page hidden">
+<main>
+  <section class="hero"><div><small>LIVE RISK OPERATIONS</small><h1>Fraud detection that explains itself.</h1><p>Automatic scoring → explainable analysis → human review.</p></div><span class="live">● LIVE</span></section>
+  <section class="metrics">
+    <div>STREAM<strong>LIVE</strong></div><div>TRANSACTIONS<strong id="total">0</strong></div><div>FLAGGED<strong id="flagged">0</strong></div><div>CLEARED<strong id="cleared">0</strong></div>
+  </section>
+  <section class="grid">
+    <div class="panel">
+      <div class="head"><div><h2>Live Transaction Stream</h2><p>DEMO MODE • public-data replay format • model scoring when available</p></div><button id="pause">Pause Stream</button></div>
+      <div class="stream-note">Every incoming transaction is scored automatically. High-risk records are routed to the incident queue.</div>
+      <table><thead><tr><th>TIME</th><th>ID</th><th>AMOUNT</th><th>SCORE</th><th>DECISION</th><th></th></tr></thead><tbody id="stream"></tbody></table>
+    </div>
+    <aside class="panel"><h2>AI Activity</h2><div id="activity"></div><hr><h2>Quick Analysis</h2><div id="details">Select a transaction to inspect the explanation.</div><a class="button secondary wide" href="#/manual">Open Manual Analysis →</a></aside>
+  </section>
+</main>
+</div>
+
+<!-- ============ INCIDENTS ============ -->
+<div id="page-incidents" class="page hidden">
+<main>
+  <section class="hero"><div><small>CASEWORK</small><h1>Incident Queue</h1><p>High-risk transactions stay visible until a human reviewer records an outcome.</p></div></section>
+  <div class="tabs"><button data-f="all">All</button><button data-f="active">Active</button><button data-f="done">Cleared / Closed</button></div>
+  <section class="panel"><table><thead><tr><th>INCIDENT</th><th>STATUS</th><th>AI SCORE</th><th>AMOUNT</th><th>OUTCOME</th><th>ACTION</th></tr></thead><tbody id="ib"></tbody></table></section>
+  <section class="panel hidden" id="rp"><h2>Manual Analysis & Human Review</h2><div id="rm"></div><div class="review"><div id="rs"></div><div><label>Reviewer</label><input id="reviewer" value="admin@fraudpulse.local"><label>Verified outcome</label><select id="outcome"><option value="">Choose outcome</option><option>Confirmed Fraud</option><option>False Positive</option><option>Legitimate Transaction</option><option>Unable to Determine</option></select><label>Analyst notes</label><textarea id="notes" placeholder="Record verified operational evidence"></textarea><button id="submit">Record Outcome & Complete Incident</button></div></div></section>
+</main>
+</div>
+
+<!-- ============ MANUAL ANALYSIS ============ -->
+<div id="page-manual" class="page hidden">
+<main>
+  <section class="hero"><div><small>ANALYST TOOL</small><h1>Manual Transaction Analysis</h1><p>Run the same scoring and explanation engine used by the automatic stream.</p></div></section>
+  <div class="grid">
+    <section class="panel">
+      <h2>Transaction Evidence</h2>
+      <div class="alert hidden" id="manualError"></div>
+      <form id="manualForm" class="form-grid">
+        <div><label>Transaction Amount (₹)</label><input type="number" name="amount" min="0" step="1" required></div>
+        <div><label>Transaction Hour (0–23)</label><input type="number" name="hour" min="0" max="23" required></div>
+        <div><label>IP Risk (0–1)</label><input type="number" name="ip_risk" min="0" max="1" step="0.01" required></div>
+        <div><label>Device Risk (0–1)</label><input type="number" name="device_risk" min="0" max="1" step="0.01" required></div>
+        <div><label>Failed Attempts</label><input type="number" name="failed_attempts" min="0" required></div>
+        <div><label>Account Age (days)</label><input type="number" name="account_age_days" min="0" required></div>
+        <button class="primary wide" type="submit">Analyze Transaction →</button>
+      </form>
+    </section>
+    <aside class="panel" id="manualResult">
+      <h2>What the analyst sees</h2>
+      <p class="explain">Enter evidence and FraudPulse will return the probability, decision, contributing signals and recommended next step.</p>
+      <div class="workflow"><div>01 <b>Collect</b><span>Transaction evidence</span></div><div>02 <b>Score</b><span>AI probability</span></div><div>03 <b>Explain</b><span>Risk signals</span></div><div>04 <b>Decide</b><span>Human review</span></div></div>
+    </aside>
+  </div>
+</main>
+</div>
+
+<!-- ============ ANALYSIS (single tx) ============ -->
+<div id="page-analysis" class="page hidden">
+<main id="analysisMain"></main>
+</div>
+
+<!-- ============ EXPLANATION ============ -->
+<div id="page-explanation" class="page hidden">
+<main>
+  <section class="hero"><div><small>5-MINUTE STORY</small><h1>From transaction to trusted decision.</h1><p>Automated screening + explainable evidence + human judgment.</p></div></section>
+  <section class="steps">
+    <div><b>01</b><h2>Incoming transaction</h2><p>Amount, hour, IP risk, device risk, failed attempts and account age enter the stream.</p></div>
+    <div><b>02</b><h2>AI scoring</h2><p>The trained model estimates fraud probability. If a compatible <code>fraud_model.pkl</code> is present, it is used automatically.</p></div>
+    <div><b>03</b><h2>Explainable signals</h2><p>The system translates observable features into human-readable risk factors instead of exposing only a mysterious score.</p></div>
+    <div><b>04</b><h2>Automatic routing</h2><p>Low-risk records are cleared, medium-risk records are watched, and high-risk records are automatically routed to incidents.</p></div>
+    <div><b>05</b><h2>Human decision</h2><p>An analyst reviews the evidence and can confirm fraud, mark a false positive, accept a legitimate transaction, or record uncertainty.</p></div>
+    <div><b>06</b><h2>Closed-loop evidence</h2><p>Completed incidents remain visible in Cleared / Closed, creating an auditable review trail for the demo.</p></div>
+  </section>
+  <section class="panel"><h2>Why this is different</h2><div class="feature-cards"><div><b>Automatic</b><span>Transactions are scored continuously.</span></div><div><b>Explainable</b><span>Risk contributors are visible to the analyst.</span></div><div><b>Human-in-the-loop</b><span>AI flags; the reviewer makes the final operational decision.</span></div><div><b>Auditable</b><span>Review outcomes stay attached to the incident.</span></div></div></section>
+  <section class="panel"><h2>Real public data — presentation rule</h2><p>For the final presentation, use a licensed public fraud dataset and name its source, license and preprocessing steps. The built-in replay records are <b>demo records</b>; they must not be presented as real customer transactions.</p><div class="quote">&ldquo;FraudPulse replays transaction-shaped data, scores each record, explains the risk context, routes suspicious cases, and leaves the final outcome to a human reviewer.&rdquo;</div></section>
+</main>
+</div>
+
+<script>
+/* ===== FraudPulse standalone engine (ported from app.py) ===== */
+const DEMO_USER = "admin@fraudpulse.local";
+const DEMO_PASSWORD = "Demo@1234";
+const MODEL_SOURCE = "Demo scoring fallback";
+
+const SEEDS = [
+  {amount:1850,hour:10,ip_risk:.08,device_risk:.10,failed_attempts:0,account_age_days:620},
+  {amount:3200,hour:14,ip_risk:.12,device_risk:.15,failed_attempts:0,account_age_days:410},
+  {amount:74000,hour:2,ip_risk:.94,device_risk:.89,failed_attempts:5,account_age_days:12},
+  {amount:8200,hour:16,ip_risk:.21,device_risk:.18,failed_attempts:1,account_age_days:280},
+  {amount:46500,hour:3,ip_risk:.87,device_risk:.82,failed_attempts:4,account_age_days:19},
+  {amount:3100,hour:11,ip_risk:.06,device_risk:.09,failed_attempts:0,account_age_days:850},
+  {amount:19800,hour:22,ip_risk:.54,device_risk:.47,failed_attempts:2,account_age_days:75},
+  {amount:1250,hour:9,ip_risk:.04,device_risk:.08,failed_attempts:0,account_age_days:1200},
+  {amount:53000,hour:1,ip_risk:.91,device_risk:.76,failed_attempts:6,account_age_days:8},
+  {amount:6700,hour:18,ip_risk:.18,device_risk:.20,failed_attempts:0,account_age_days:330},
+];
+
+let transactions = [];
+let incidents = {};
+let counter = 1080;
+let authenticated = false;
+
+function fallback_score(t){
+  let s = .02
+    + t.ip_risk * .30
+    + t.device_risk * .25
+    + Math.min(t.failed_attempts / 6, 1) * .18
+    + Math.min(t.amount / 75000, 1) * .18
+    + Math.max(0, 1 - t.account_age_days / 180) * .12;
+  if (t.hour <= 4) s += .06;
+  return Math.min(s, .99);
+}
+function score(t){ return fallback_score(t); } // no pkl in standalone
+
+function analyze(t){
+  const probability = score(t);
+  const decision = probability >= .70 ? "FLAGGED" : (probability >= .40 ? "WATCH" : "CLEARED");
+  const checks = [
+    [t.ip_risk > .85, "High IP risk", "critical"],
+    [t.ip_risk > .55, "Elevated IP risk", "warning"],
+    [t.device_risk > .75, "High device risk", "critical"],
+    [t.device_risk > .50, "Elevated device risk", "warning"],
+    [t.failed_attempts >= 4, "Multiple failed attempts", "critical"],
+    [t.failed_attempts >= 2, "Repeated failed attempts", "warning"],
+    [t.amount > 40000, "Unusually large transaction", "critical"],
+    [t.amount > 15000, "Above-normal transaction value", "warning"],
+    [t.account_age_days < 30, "Very new account", "critical"],
+    [t.account_age_days < 90, "Relatively new account", "warning"],
+    [t.hour <= 4, "Unusual transaction hour", "warning"],
+  ];
+  let signals = checks.filter(c=>c[0]).map(c=>[c[1],c[2]]);
+  if (!signals.length) signals = [["No significant anomalous signal detected","good"]];
+  const elevated = signals.filter(x=>x[1]!=="good");
+  let explanation;
+  if (elevated.length >= 3) explanation = "Several independent risk indicators occur together, materially increasing the model score.";
+  else if (elevated.length === 2) explanation = "Multiple risk indicators occur together and increase the model score.";
+  else explanation = "The observed features are broadly consistent with lower-risk traffic.";
+  return {probability, decision, signals, explanation};
+}
+
+function make_tx(){
+  counter += 1;
+  const highRisk = Math.random() < .22;
+  const pool = highRisk ? SEEDS.slice(2,5).concat(SEEDS.slice(8,9)) : SEEDS.slice(0,2).concat(SEEDS.slice(3,4),SEEDS.slice(5,8),SEEDS.slice(9));
+  let base = Object.assign({}, pool[Math.floor(Math.random()*pool.length)]);
+  base.amount = Math.max(250, Math.round(base.amount * (.82 + Math.random()*.36)));
+  base.hour = Math.floor(Math.random()*24);
+  base.ip_risk = Math.min(.99, Math.max(0, base.ip_risk + (Math.random()*.1-.05)));
+  base.device_risk = Math.min(.99, Math.max(0, base.device_risk + (Math.random()*.1-.05)));
+  base.failed_attempts = Math.max(0, base.failed_attempts + [-1,0,0,1][Math.floor(Math.random()*4)]);
+  base.account_age_days = Math.max(1, base.account_age_days + Math.floor(Math.random()*17-8));
+  const a = analyze(base);
+  const d = new Date();
+  const tx = Object.assign({id:"TX-"+counter, time:d.toTimeString().slice(0,8)}, base, {
+    probability: Math.round(a.probability*1000)/10,
+    decision: a.decision, signals: a.signals, explanation: a.explanation, model_source: MODEL_SOURCE
+  });
+  transactions.unshift(tx);
+  if (transactions.length > 25) transactions = transactions.slice(0,25);
+  if (a.decision === "FLAGGED"){
+    incidents[tx.id] = {transaction:tx, status:"Awaiting Review", outcome:null, reviewer:"", notes:"", completed:null};
+  }
+  return tx;
+}
+for (let i=0;i<12;i++) make_tx();
+
+/* ===== helpers ===== */
+function money(n){ return '₹'+Number(n).toLocaleString('en-IN'); }
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&','<':'<','>':'>','"':'"',"'":'&#039;'}[m]));}
+function nowTime(){ return new Date().toTimeString().slice(0,8); }
+
+/* ===== Auth ===== */
+function fillAdmin(){
+  document.getElementById('username').value = DEMO_USER;
+  document.getElementById('password').value = DEMO_PASSWORD;
+  document.getElementById('username').focus();
+  document.getElementById('adminButton').classList.add('active');
+}
+function doLogin(e){
+  e.preventDefault();
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  const err = document.getElementById('loginError');
+  if (u === DEMO_USER && p === DEMO_PASSWORD){
+    authenticated = true;
+    err.classList.add('hidden');
+    location.hash = '#/';
+  } else {
+    err.textContent = "Invalid demo credentials.";
+    err.classList.remove('hidden');
+  }
+  return false;
+}
+
+/* ===== Routing ===== */
+function showOnly(id){
+  ['page-login','page-home','page-incidents','page-manual','page-analysis','page-explanation'].forEach(p=>{
+    document.getElementById(p).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+  const isLanding = (id==='page-login');
+  document.body.classList.toggle('landing-page', isLanding);
+  document.getElementById('appChrome').classList.toggle('hidden', isLanding);
+  window.scrollTo(0,0);
+  if (window._revealInit) initReveal();
+}
+
+function route(){
+  const h = location.hash || '#login';
+  if (h === '#logout'){
+    authenticated = false;
+    location.hash = '#login';
+    return;
+  }
+  if (h === '#login' || !authenticated){
+    showOnly('page-login');
+    return;
+  }
+  // authenticated routes
+  if (h === '#/' || h === '#'){
+    showOnly('page-home');
+    initHome();
+  } else if (h.startsWith('#/incidents')){
+    showOnly('page-incidents');
+    initIncidents();
+  } else if (h.startsWith('#/manual')){
+    showOnly('page-manual');
+  } else if (h.startsWith('#/analysis/')){
+    const id = decodeURIComponent(h.slice('#/analysis/'.length));
+    showOnly('page-analysis');
+    renderAnalysis(id);
+  } else if (h.startsWith('#/explanation')){
+    showOnly('page-explanation');
+  } else if (h === '#signin' || h === '#capabilities' || h === '#how' || h === '#governance'){
+    // anchors within landing
+    if (!authenticated){ showOnly('page-login'); }
+    else { showOnly('page-home'); initHome(); }
+  } else {
+    showOnly('page-home');
+    initHome();
+  }
+}
+window.addEventListener('hashchange', route);
+
+/* ===== Command center ===== */
+let paused=false, timer=null, rows=[], activityRows=[], total=0, flagged=0, cleared=0;
+let homeActive=false;
+
+function renderHome(){
+  document.getElementById('total').textContent=total;
+  document.getElementById('flagged').textContent=flagged;
+  document.getElementById('cleared').textContent=cleared;
+  const body=document.getElementById('stream');
+  body.innerHTML=rows.map(x=>`<tr>
+    <td>${escapeHtml(x.time)}</td><td><a href="#/analysis/${encodeURIComponent(x.id)}">${escapeHtml(x.id)}</a></td>
+    <td>${money(x.amount)}</td><td>${x.probability}%</td>
+    <td class="decision-${x.decision}">${x.decision}</td>
+    <td><button onclick="showTx('${x.id}')">Analyze</button></td>
+  </tr>`).join('');
+  document.getElementById('activity').innerHTML=activityRows.map(x=>`<div class="activity ${x.decision.toLowerCase()}">
+    <b>${x.decision==='FLAGGED'?'🔴':x.decision==='WATCH'?'🟡':'🟢'} ${escapeHtml(x.id)} ${x.decision}</b>
+    <div>AI score: ${x.probability}%</div><small>${escapeHtml(x.explanation)}</small>
+  </div>`).join('');
+}
+function addTx(tx,count){
+  rows.unshift(tx); rows=rows.slice(0,18);
+  activityRows.unshift(tx); activityRows=activityRows.slice(0,5);
+  if(count!==false){total++;if(tx.decision==='FLAGGED')flagged++;if(tx.decision==='CLEARED')cleared++;}
+  renderHome();
+}
+function showTx(id){
+  const x=rows.find(r=>r.id===id); if(!x)return;
+  document.getElementById('details').innerHTML=`<b>${escapeHtml(x.id)}</b> — ${money(x.amount)}<br>
+  <strong class="decision-${x.decision}">${x.probability}% ${x.decision}</strong><hr>
+  ${x.signals.map(s=>`• ${escapeHtml(s[0])}`).join('<br>')}
+  <p>${escapeHtml(x.explanation)}</p>
+  <a class="button" href="#/analysis/${encodeURIComponent(x.id)}">Open full analysis →</a>`;
+}
+function tick(){
+  if(!homeActive||paused)return;
+  addTx(make_tx());
+}
+function initHome(){
+  if(homeActive) return;
+  homeActive=true;
+  if(!rows.length){
+    transactions.slice(0,10).reverse().forEach(x=>addTx(x));
+  }
+  if(!timer) timer=setInterval(tick,3000);
+  const pauseBtn=document.getElementById('pause');
+  pauseBtn.onclick=()=>{paused=!paused;pauseBtn.textContent=paused?'Resume Stream':'Pause Stream';};
+}
+
+/* ===== Incidents ===== */
+let incData=[], currentInc=null, incFilter='all', incActive=false;
+function loadIncidents(){
+  incData = Object.keys(incidents).map(k=>Object.assign({id:k}, incidents[k]));
+  renderIncidents();
+}
+function renderIncidents(){
+  const x=incData.filter(i=>incFilter==='all'||(incFilter==='active'&&i.status==='Awaiting Review')||(incFilter==='done'&&i.status==='Completed'));
+  document.getElementById('ib').innerHTML=x.map(i=>`<tr>
+    <td><a href="#/analysis/${encodeURIComponent(i.id)}">${i.id}</a></td>
+    <td class="${i.status==='Completed'?'decision-CLEARED':'decision-FLAGGED'}">${i.status}</td>
+    <td>${i.transaction.probability}%</td>
+    <td>${money(i.transaction.amount)}</td>
+    <td>${i.outcome||'—'}</td>
+    <td><button onclick="reviewIncident('${i.id}')">${i.status==='Completed'?'View':'Manual Analyze'}</button></td>
+  </tr>`).join('')||'<tr><td colspan="6">No incidents in this view.</td></tr>';
+}
+function reviewIncident(id){
+  currentInc=incData.find(i=>i.id===id);if(!currentInc)return;
+  document.getElementById('rp').classList.remove('hidden');
+  const t=currentInc.transaction;
+  document.getElementById('rm').innerHTML=`<h3>${currentInc.id} • ${t.probability}% • ${money(t.amount)}</h3>
+  <p>${escapeHtml(t.explanation)}</p><div class="features">
+  <div>IP risk <b>${(t.ip_risk*100).toFixed(1)}%</b></div><div>Device risk <b>${(t.device_risk*100).toFixed(1)}%</b></div>
+  <div>Failed attempts <b>${t.failed_attempts}</b></div><div>Account age <b>${t.account_age_days} days</b></div></div>`;
+  document.getElementById('rs').innerHTML=t.signals.map(s=>`<div class="signal ${s[1]}"><b>${s[0]}</b><span>${s[1].toUpperCase()}</span></div>`).join('');
+  document.getElementById('reviewer').value=currentInc.reviewer||'admin@fraudpulse.local';
+  document.getElementById('outcome').value=currentInc.outcome||'';
+  document.getElementById('notes').value=currentInc.notes||'';
+  scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function initIncidents(){
+  incActive=true;
+  loadIncidents();
+  document.querySelectorAll('#page-incidents .tabs button').forEach(b=>{
+    b.onclick=()=>{incFilter=b.dataset.f;renderIncidents();};
+  });
+  const submit=document.getElementById('submit');
+  if(submit && !submit._bound){
+    submit._bound=true;
+    submit.onclick=()=>{
+      if(!currentInc)return;
+      const outcome=document.getElementById('outcome').value;
+      if(!outcome){alert('Choose an outcome.');return;}
+      const inc=incidents[currentInc.id];
+      inc.status="Completed"; inc.outcome=outcome;
+      inc.reviewer=document.getElementById('reviewer').value;
+      inc.notes=document.getElementById('notes').value;
+      inc.completed=nowTime();
+      document.getElementById('rp').classList.add('hidden');
+      loadIncidents();
+    };
+  }
+}
+
+/* ===== Manual analysis ===== */
+function initManual(){
+  const form=document.getElementById('manualForm');
+  if(form._bound) return;
+  form._bound=true;
+  form.onsubmit=function(e){
+    e.preventDefault();
+    const err=document.getElementById('manualError');
+    err.classList.add('hidden');
+    try{
+      const t={
+        amount: parseFloat(form.amount.value),
+        hour: parseInt(form.hour.value,10),
+        ip_risk: parseFloat(form.ip_risk.value),
+        device_risk: parseFloat(form.device_risk.value),
+        failed_attempts: parseInt(form.failed_attempts.value,10),
+        account_age_days: parseInt(form.account_age_days.value,10),
+      };
+      if(!(0<=t.hour&&t.hour<=23 && 0<=t.ip_risk&&t.ip_risk<=1 && 0<=t.device_risk&&t.device_risk<=1)) throw 0;
+      const a=analyze(t);
+      const r=Object.assign({},t,{probability:Math.round(a.probability*1000)/10,decision:a.decision,signals:a.signals,explanation:a.explanation,model_source:MODEL_SOURCE});
+      document.getElementById('manualResult').innerHTML=`<small>AI ASSESSMENT • ${r.model_source}</small><div class="big-score">${r.probability}%</div><h2 class="decision-${r.decision}">${r.decision}</h2><p class="explain">${escapeHtml(r.explanation)}</p><h3>Why?</h3>${r.signals.map(s=>`<div class="signal ${s[1]}"><b>${s[0]}</b><span>${s[1].toUpperCase()}</span></div>`).join('')}<div class="mini-grid"><div>IP risk<strong>${(r.ip_risk*100).toFixed(1)}%</strong></div><div>Device risk<strong>${(r.device_risk*100).toFixed(1)}%</strong></div><div>Failed attempts<strong>${r.failed_attempts}</strong></div><div>Account age<strong>${r.account_age_days} days</strong></div></div>`;
+    }catch(_){
+      err.textContent="Please enter valid values.";
+      err.classList.remove('hidden');
+    }
+  };
+}
+
+/* ===== Analysis page ===== */
+function renderAnalysis(id){
+  let tx=transactions.find(x=>x.id===id);
+  if(!tx && incidents[id]) tx=incidents[id].transaction;
+  const m=document.getElementById('analysisMain');
+  if(!tx){ m.innerHTML='<section class="panel"><h2>Transaction not found</h2><p>The transaction may have rotated out of the live replay.</p></section>'; return; }
+  m.innerHTML=`
+  <section class="hero"><div><small>TRANSACTION ANALYSIS</small><h1>${escapeHtml(tx.id)}</h1><p>Evidence-backed model explanation. AI recommendations support, but do not replace, human judgment.</p></div></section>
+  <section class="metrics"><div>AMOUNT<strong>${money(tx.amount)}</strong></div><div>FRAUD PROBABILITY<strong>${tx.probability}%</strong></div><div>DECISION<strong class="decision-${tx.decision}">${tx.decision}</strong></div><div>MODEL<strong>AI</strong><small>${escapeHtml(tx.model_source)}</small></div></section>
+  <section class="grid"><div class="panel"><h2>Risk Factors</h2>${tx.signals.map(s=>`<div class="signal ${s[1]}"><b>${s[0]}</b><span>${s[1].toUpperCase()}</span></div>`).join('')}</div>
+  <div class="panel"><h2>AI Explanation</h2><p class="explain">${escapeHtml(tx.explanation)}</p><h3>Observed Features</h3><div class="features">
+  <div>IP risk <b>${(tx.ip_risk*100).toFixed(1)}%</b></div>
+  <div>Device risk <b>${(tx.device_risk*100).toFixed(1)}%</b></div>
+  <div>Failed attempts <b>${tx.failed_attempts}</b></div>
+  <div>Account age <b>${tx.account_age_days} days</b></div>
+  <div>Transaction hour <b>${('0'+tx.hour).slice(-2)}:00</b></div>
+  <div>Transaction amount <b>${money(tx.amount)}</b></div>
+  </div></div></section>`;
+}
+
+/* ===== UI motion layer (ported from ui.js) ===== */
+function initReveal(){
+  const items=document.querySelectorAll('.landing-hero,.landing-lower,.landing-info,.panel,.metrics>div,.steps>div,.feature-cards>div,.solution-cards>div,.signin-card,.quote');
+  items.forEach((el,i)=>{el.classList.add('reveal'); if(i%4===1)el.classList.add('reveal-delay-1'); if(i%4===2)el.classList.add('reveal-delay-2'); if(i%4===3)el.classList.add('reveal-delay-3')});
+  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}}),{threshold:.12});items.forEach(el=>io.observe(el))}else items.forEach(el=>el.classList.add('visible'));
+}
+(function(){
+  const bar=document.createElement('div'); bar.className='scroll-progress'; bar.innerHTML='<span></span>'; document.body.appendChild(bar);
+  const progress=bar.firstElementChild;
+  const update=()=>{const h=document.documentElement; const max=h.scrollHeight-innerHeight; progress.style.width=(max>0?(scrollY/max)*100:0)+'%'; document.body.style.setProperty('--mx','50%');};
+  addEventListener('scroll',update,{passive:true}); addEventListener('resize',update); update();
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce){
+    const dot=document.createElement('div'), ring=document.createElement('div');
+    dot.className='cursor-dot'; ring.className='cursor-ring'; document.body.append(dot,ring);
+    let x=innerWidth/2,y=innerHeight/2,rx=x,ry=y,visible=false;
+    addEventListener('pointermove',e=>{x=e.clientX;y=e.clientY;document.body.style.setProperty('--mx',(x/innerWidth*100)+'%');document.body.style.setProperty('--my',(y/innerHeight*100)+'%');if(!visible){visible=true;dot.style.opacity=1;ring.style.opacity=1;}});
+    const frame=()=>{rx+=(x-rx)*.18;ry+=(y-ry)*.18;dot.style.left=x+'px';dot.style.top=y+'px';ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(frame)}; frame();
+    document.addEventListener('mouseover',e=>{if(e.target.closest('a,button,input,select,textarea'))ring.classList.add('hover');else ring.classList.remove('hover')});
+  }
+  window._revealInit=true;
+  initReveal();
+})();
+
+/* ===== Boot ===== */
+initManual();
+route();
+</script>
+</body>
+</html>
