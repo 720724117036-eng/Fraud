@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShieldKnot AI &mdash; Fraud Spike Intercept</title>
+<style>
+/* ========== RESET & BASE ========== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#000; --bg2:#0a0510; 
+  --panel:rgba(18,10,32,.75); --panel2:rgba(25,15,42,.7);
+  --border:rgba(139,92,246,.2); --border2:rgba(139,92,246,.35);
+  --text:#ffffff; --text-dim:#b8b0d0; --text-faint:#6a6280;
+  --accent:#8b5cf6; --accent2:#a78bfa; --accent-glow:rgba(139,92,246,.12);
+  --neon-white:#f0f0ff; --neon-violet:#8b5cf6; --neon-violet2:#a78bfa;
+  --orange:#f97316; --orange2:#fb923c;
+  --green:#22c55e; --green-d:#16a34a;
+  --red:#ef4444; --red-d:#dc2626;
+  --gold:#eab308; --gold-d:#ca8a04;
+  --radius:12px; --radius-sm:8px;
+}
+html{font-size:14px}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;
+  background:#000; color:var(--text);
+  min-height:100vh; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  cursor:none;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 800px 600px at 15% 10%,rgba(139,92,246,.12) 0%,transparent 60%),
+    radial-gradient(ellipse 700px 500px at 85% 90%,rgba(139,92,246,.08) 0%,transparent 60%),
+    radial-gradient(circle 400px at 50% 50%,rgba(255,255,255,.015) 0%,transparent 70%);
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:none;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:1rem}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:rgba(10,5,16,.8)}
+::-webkit-scrollbar-thumb{background:rgba(139,92,246,.35);border-radius:3px}
+
+/* ========== CUSTOM CURSOR ========== */
+.cursor-dot{
+  position:fixed;width:8px;height:8px;border-radius:50%;
+  background:var(--neon-violet2);pointer-events:none;z-index:99999;
+  transform:translate(-50%,-50%);
+  transition:width .2s,height .2s,background .2s;
+  mix-blend-mode:screen;
+}
+.cursor-ring{
+  position:fixed;width:36px;height:36px;border-radius:50%;
+  border:1.5px solid var(--neon-violet);pointer-events:none;z-index:99998;
+  transform:translate(-50%,-50%);
+  transition:width .3s,height .3s,border-color .3s,transform .1s linear;
+}
+.cursor-dot.hover{width:16px;height:16px;background:#fff}
+.cursor-ring.hover{width:48px;height:48px;border-color:#fff}
+
+/* ========== PAGE TRANSITIONS ========== */
+.page{display:none;opacity:0}
+.page.active{display:block;animation:pageIn .5s ease forwards}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ========== LANDING PAGE ========== */
+#landing{
+  background:#000;min-height:100vh;position:relative;overflow:hidden;
+}
+#landing::before{
+  content:'';position:absolute;top:-200px;right:-200px;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(139,92,246,.1) 0%,transparent 70%);
+  pointer-events:none;
+}
+#landing::after{
+  content:'';position:absolute;bottom:-300px;left:-200px;
+  width:700px;height:700px;border-radius:50%;
+  background:radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.landing-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.2rem 3rem;border-bottom:1px solid rgba(139,92,246,.15);
+  position:relative;z-index:2;
+  backdrop-filter:blur(20px);background:rgba(10,5,20,.4);
+}
+.landing-brand{display:flex;align-items:center;gap:.6rem;font-size:1.05rem;font-weight:600}
+.landing-brand .logo{
+  width:28px;height:28px;border-radius:8px;
+  background:linear-gradient(135deg,var(--neon-violet),var(--neon-violet2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;color:#fff;font-weight:700;
+  animation:logoPulse 3s ease infinite;
+  box-shadow:0 0 15px rgba(139,92,246,.4);
+}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,.4)}50%{box-shadow:0 0 0 10px rgba(139,92,246,0)}}
+.landing-nav-links{display:flex;gap:2rem;align-items:center}
+.landing-nav-links a{color:var(--text-dim);font-size:.9rem;transition:color .2s}
+.landing-nav-links a:hover{color:var(--text)}
+.landing-nav-actions{display:flex;gap:1rem;align-items:center}
+.btn-ghost{color:var(--text-dim);font-size:.9rem;transition:color .2s}
+.btn-ghost:hover{color:var(--text)}
+.btn-primary{
+  background:linear-gradient(135deg,var(--neon-violet),var(--neon-violet2));
+  color:#fff;padding:.55rem 1.3rem;border-radius:var(--radius-sm);
+  font-size:.875rem;font-weight:600;transition:transform .15s,box-shadow .2s;
+  box-shadow:0 0 15px rgba(139,92,246,.3);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 25px rgba(139,92,246,.5)}
+.btn-primary:active{transform:translateY(0)}
+.landing-hero{
+  display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;
+  padding:3.5rem 3rem 2rem;max-width:1400px;margin:0 auto;position:relative;z-index:2;
+}
+.hero-left h1{font-size:2.8rem;font-weight:700;line-height:1.15;letter-spacing:-.02em;animation:slideRight .6s ease}
+.hero-left h1 .accent{color:var(--neon-violet2);text-shadow:0 0 20px rgba(139,92,246,.5)}
+@keyframes slideRight{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+.hero-left p.sub{color:var(--text-dim);font-size:1.1rem;margin-top:1.2rem;max-width:480px;line-height:1.65;animation:slideRight .8s ease}
+.hero-left .cta-row{display:flex;gap:1rem;margin-top:2rem;align-items:center;animation:fadeUp 1s ease}
+.hero-left .cta-note{color:var(--text-faint);font-size:.8rem;margin-top:1rem}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);
+  color:var(--neon-violet2);padding:.3rem .8rem;border-radius:20px;
+  font-size:.75rem;font-weight:600;margin-bottom:1.5rem;
+  animation:fadeUp .5s ease;backdrop-filter:blur(10px);
+}
+.hero-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--neon-violet);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-right{animation:slideLeft .8s ease}
+@keyframes slideLeft{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+
+/* ===== Dashboard Preview Card ===== */
+.dash-preview{
+  background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.3);border-radius:16px;
+  padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05),0 0 30px rgba(139,92,246,.08);
+  backdrop-filter:blur(20px);
+}
+.dash-preview-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.dash-live{display:flex;align-items:center;gap:.4rem}
+.dash-live .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.5s infinite}
+.dash-live .live-text{font-size:.75rem;font-weight:600;letter-spacing:.05em;color:var(--green)}
+.dash-preview-head h3{font-size:1rem;font-weight:600}
+.dash-preview-head .time{font-size:.75rem;color:var(--text-faint)}
+.dash-chart{position:relative;height:140px;margin-bottom:1rem}
+.dash-chart svg{width:100%;height:100%}
+.dash-alert{
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);
+  border-radius:var(--radius-sm);padding:.9rem;
+}
+.dash-alert-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.dash-alert-head .badge{font-size:.65rem;font-weight:700;letter-spacing:.08em;color:var(--red)}
+.dash-alert-head .sev{background:var(--red);color:#fff;font-size:.65rem;padding:.15rem .5rem;border-radius:4px;font-weight:600;animation:pulse 1s infinite}
+.dash-alert h4{font-size:.85rem;font-weight:600;margin-bottom:.5rem}
+.dash-alert .metrics{display:flex;gap:1.5rem;margin-bottom:.5rem}
+.dash-alert .metric .label{font-size:.65rem;color:var(--text-faint);text-transform:uppercase}
+.dash-alert .metric .val{font-size:1rem;font-weight:700;color:var(--red)}
+.dash-alert .desc{font-size:.75rem;color:var(--text-dim);margin-bottom:.5rem}
+.dash-alert .meta{font-size:.7rem;color:var(--text-faint)}
+.dash-alert .meta .pri{color:var(--orange)}
+.dash-alert .action-row{display:flex;align-items:center;justify-content:space-between;margin-top:.8rem;padding-top:.6rem;border-top:1px solid rgba(139,92,246,.2)}
+.dash-alert .action-label{font-size:.7rem;color:var(--text-faint)}
+.dash-alert .reject-btn{background:rgba(25,15,42,.7);backdrop-filter:blur(15px);border:1px solid rgba(139,92,246,.35);color:var(--text-dim);padding:.3rem .8rem;border-radius:6px;font-size:.7rem;transition:all .2s}
+.dash-alert .reject-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* ===== Login Modal ===== */
+.login-overlay{
+  position:fixed;inset:0;background:rgba(6,9,18,.85);backdrop-filter:blur(8px);
+  z-index:100;display:none;align-items:center;justify-content:center;
+}
+.login-overlay.show{display:flex;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.login-modal{
+  background:rgba(15,8,28,.9);border:1px solid rgba(139,92,246,.4);border-radius:16px;
+  padding:2rem;width:400px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 50px rgba(139,92,246,.15);
+  animation:modalIn .4s cubic-bezier(.34,1.56,.64,1);backdrop-filter:blur(25px);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.login-modal h2{font-size:1.2rem;font-weight:600;margin-bottom:.4rem}
+.login-modal .inst{font-size:.85rem;color:var(--text-dim);margin-bottom:1.2rem}
+.login-modal .close-x{float:right;color:var(--text-faint);font-size:1.2rem;cursor:none;transition:color .2s}
+.login-modal .close-x:hover{color:var(--text)}
+.role-chips{display:flex;gap:.5rem;margin-bottom:1.2rem}
+.role-chip{
+  flex:1;padding:.5rem;border-radius:var(--radius-sm);
+  border:1px solid rgba(139,92,246,.35);background:transparent;
+  color:var(--text-dim);font-size:.8rem;text-align:center;transition:all .2s;
+}
+.role-chip:hover{border-color:var(--neon-violet);transform:translateY(-2px)}
+.role-chip.selected{background:rgba(139,92,246,.15);border-color:var(--neon-violet);color:var(--neon-violet2)}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.8rem;color:var(--text-dim);margin-bottom:.4rem}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;background:rgba(10,5,16,.8);border:1px solid rgba(139,92,246,.35);
+  color:var(--text);padding:.6rem .8rem;border-radius:var(--radius-sm);outline:none;
+  transition:border-color .2s,box-shadow .2s;cursor:none;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--neon-violet);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+.form-group textarea{resize:vertical;min-height:60px}
+.login-modal .btn-enter{
+  width:100%;background:linear-gradient(135deg,var(--neon-violet),var(--neon-violet2));
+  color:#fff;padding:.7rem;border-radius:var(--radius-sm);
+  font-weight:600;font-size:.9rem;margin-top:.5rem;
+  transition:transform .15s,box-shadow .2s;box-shadow:0 0 15px rgba(139,92,246,.3);
+}
+.login-modal .btn-enter:hover{transform:translateY(-2px);box-shadow:0 4px 25px rgba(139,92,246,.5)}
+.login-footer{font-size:.7rem;color:var(--text-faint);text-align:center;margin-top:1rem}
+
+/* ========== APP SHELL ========== */
+.app-shell{display:flex;min-height:100vh}
+.sidebar{
+  width:230px;background:rgba(8,5,15,.9);border-right:1px solid rgba(139,92,246,.2);
+  display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto;
+  backdrop-filter:blur(20px);
+}
+.sidebar-brand{
+  display:flex;align-items:center;gap:.6rem;padding:1.2rem 1.3rem;
+  border-bottom:1px solid rgba(139,92,246,.15);font-weight:600;font-size:1rem;
+}
+.sidebar-brand .logo{
+  width:28px;height:28px;border-radius:8px;
+  background:linear-gradient(135deg,var(--neon-violet),var(--neon-violet2));
+  display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;font-weight:700;
+  box-shadow:0 0 12px rgba(139,92,246,.4);
+}
+.sidebar-section{padding:.8rem 0}
+.sidebar-section .label{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--text-faint);padding:0 1.3rem;margin-bottom:.4rem;font-weight:600;
+}
+.sidebar-item{
+  display:flex;align-items:center;gap:.7rem;padding:.6rem 1.3rem;
+  color:var(--text-dim);font-size:.875rem;cursor:none;transition:all .2s;
+  border-left:3px solid transparent;position:relative;
+}
+.sidebar-item:hover{background:rgba(139,92,246,.08);color:var(--text);transform:translateX(3px)}
+.sidebar-item.active{background:rgba(139,92,246,.12);color:var(--neon-violet2);border-left-color:var(--neon-violet);box-shadow:inset 0 0 20px rgba(139,92,246,.05)}
+.sidebar-item .badge-count{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:.65rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;
+  animation:badgePulse 2s infinite;
+}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+.sidebar-footer{margin-top:auto;padding:1rem 1.3rem;border-top:1px solid rgba(139,92,246,.15)}
+.sidebar-footer a{display:block;font-size:.78rem;color:var(--text-faint);padding:.3rem 0;transition:color .2s}
+.sidebar-footer a:hover{color:var(--text-dim)}
+
+.main-area{flex:1;margin-left:230px;display:flex;flex-direction:column;min-height:100vh;position:relative;z-index:1}
+.top-bar{
+  background:rgba(5,5,10,.8);border-bottom:1px solid rgba(139,92,246,.15);
+  padding:.5rem 1.5rem;display:flex;align-items:center;gap:1rem;
+  backdrop-filter:blur(20px);
+}
+.dep-list{display:flex;align-items:center;gap:1.2rem;flex:1}
+.dep{display:flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--text-dim);transition:color .2s}
+.dep:hover{color:var(--text)}
+.dep .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.4);animation:pulse 3s infinite}
+.top-right{display:flex;align-items:center;gap:1rem}
+.live-tag{display:flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--green)}
+.live-tag .dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.user-chip{display:flex;align-items:center;gap:.4rem;font-size:.8rem}
+.user-chip .avatar{
+  width:26px;height:26px;border-radius:50%;background:var(--neon-violet);
+  display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;font-weight:600;
+  box-shadow:0 0 10px rgba(139,92,246,.3);
+}
+
+.page-header{padding:1.5rem 2rem 1rem;position:relative}
+.page-header h1{font-size:1.5rem;font-weight:600;animation:slideRight .4s ease}
+.page-header .sub{color:var(--text-dim);font-size:.875rem;margin-top:.3rem;animation:slideRight .6s ease}
+.page-header .actions{position:absolute;top:1.5rem;right:2rem;display:flex;gap:.8rem;align-items:center}
+
+.content{padding:0 2rem 2rem;flex:1}
+
+/* ========== DASHBOARD ========== */
+.metric-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.metric-card{
+  background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);
+  padding:1.2rem;animation:cardIn .5s ease backwards;transition:transform .2s,box-shadow .2s,border-color .2s;
+  backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05);
+}
+.metric-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(139,92,246,.15);border-color:rgba(139,92,246,.4)}
+.metric-card:nth-child(1){animation-delay:.1s}
+.metric-card:nth-child(2){animation-delay:.2s}
+.metric-card:nth-child(3){animation-delay:.3s}
+.metric-card:nth-child(4){animation-delay:.4s}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.metric-card .mc-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);font-weight:600}
+.metric-card .mc-value{font-size:2rem;font-weight:700;margin:.3rem 0;color:#f0f0ff;text-shadow:0 0 20px rgba(139,92,246,.3),0 0 10px rgba(255,255,255,.1)}
+.metric-card .mc-sub{font-size:.75rem;color:var(--text-dim)}
+.metric-card .mc-detail{font-size:.7rem;color:var(--text-faint);margin-top:.3rem;font-family:monospace}
+.sparkline{float:right;width:50px;height:24px}
+
+.dash-grid{display:grid;grid-template-columns:2fr 1fr;gap:1rem;animation:cardIn .6s ease .5s backwards}
+.chart-panel{
+  background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);
+  padding:1.2rem;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05);
+}
+.chart-panel h3{font-size:.9rem;font-weight:600;margin-bottom:.8rem}
+.chart-area{height:220px;position:relative}
+.chart-area svg{width:100%;height:100%}
+.chart-footer{font-size:.7rem;color:var(--text-faint);margin-top:.6rem}
+.bottom-panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;animation:cardIn .6s ease .7s backwards}
+.panel{
+  background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);
+  padding:1.2rem;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05);
+}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+.panel-head h3{font-size:.85rem;font-weight:600}
+.panel-head .sub{font-size:.7rem;color:var(--text-faint)}
+.tx-table{width:100%}
+.tx-table th{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);text-align:left;padding:.4rem 0;border-bottom:1px solid rgba(139,92,246,.15);font-weight:600}
+.tx-table td{font-size:.8rem;padding:.45rem 0;border-bottom:1px solid rgba(139,92,246,.08)}
+.tx-table tr{animation:rowIn .4s ease backwards}
+@keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.tx-table .risk-high{color:var(--red);font-weight:600}
+.tx-table .risk-zero{color:var(--text-faint)}
+.alert-item{padding:.8rem 0;border-bottom:1px solid rgba(139,92,246,.08);transition:padding-left .2s}
+.alert-item:hover{padding-left:.5rem}
+.alert-item:last-child{border-bottom:none}
+.alert-item .ai-title{font-size:.85rem;font-weight:600;color:#c4b5fd}
+.alert-item .ai-code{font-size:.7rem;color:var(--text-faint);font-family:monospace;margin-top:.2rem}
+.alert-item .ai-date{font-size:.7rem;color:var(--text-faint);margin-top:.2rem}
+
+/* ========== INCIDENT QUEUE ========== */
+.filter-tabs{display:flex;gap:.3rem;margin-bottom:1rem}
+.filter-tab{
+  padding:.45rem 1rem;border-radius:8px;font-size:.8rem;color:var(--text-dim);
+  cursor:none;transition:all .2s;border:1px solid transparent;
+}
+.filter-tab:hover{background:rgba(139,92,246,.08);color:var(--text)}
+.filter-tab.active{background:rgba(139,92,246,.12);color:var(--neon-violet2);border-color:rgba(139,92,246,.3)}
+.incident-count{font-size:.8rem;color:var(--text-dim);margin-bottom:.8rem}
+.inc-table{width:100%;border-collapse:collapse}
+.inc-table th{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);
+  text-align:left;padding:.6rem .8rem;border-bottom:1px solid rgba(139,92,246,.15);font-weight:600;
+}
+.inc-table td{font-size:.8rem;padding:.8rem;border-bottom:1px solid rgba(139,92,246,.08)}
+.inc-table tr{cursor:none;transition:background .15s;animation:rowIn .4s ease backwards}
+.inc-table tr:hover{background:rgba(139,92,246,.05)}
+.inc-table tr:hover td:first-child{border-left:3px solid var(--neon-violet)}
+.status-badge{display:inline-block;padding:.2rem .6rem;border-radius:6px;font-size:.7rem;font-weight:600}
+.status-awaiting{background:rgba(234,179,8,.15);color:var(--gold)}
+.status-detected{background:rgba(59,130,246,.15);color:var(--neon-violet)}
+.status-investigating{background:rgba(168,85,247,.15);color:#a855f7}
+.status-completed{background:rgba(34,197,94,.15);color:var(--green)}
+.sev-badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600}
+.sev-unrated{background:rgba(25,15,42,.7);backdrop-filter:blur(15px);color:var(--text-faint)}
+.sev-critical{background:rgba(239,68,68,.15);color:var(--red)}
+.sev-high{background:rgba(249,115,22,.15);color:var(--orange)}
+.reco-link{color:var(--neon-violet2);font-size:.8rem;cursor:none;transition:color .2s}
+.reco-link:hover{color:var(--neon-violet)}
+.table-note{font-size:.75rem;color:var(--text-faint);margin-top:1rem;font-style:italic}
+
+/* ========== INVESTIGATION ========== */
+.invest-header{padding:1.5rem 2rem .8rem;position:relative}
+.invest-header .actions{position:absolute;top:1.2rem;right:2rem;display:flex;gap:1rem;align-items:center;z-index:5}
+.invest-header h1{font-size:1.3rem;font-weight:600;animation:slideRight .4s ease}
+.invest-header .sub{color:var(--text-dim);font-size:.85rem;margin-top:.3rem;animation:slideRight .6s ease}
+.safeguard-bar{
+  background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);
+  padding:1rem 1.5rem;margin:0 2rem 1.5rem;display:flex;align-items:center;gap:.8rem;
+  transition:border-color .5s,background .5s;
+  animation:cardIn .4s ease;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05);
+}
+.safeguard-bar.resolved{border-color:var(--green);background:rgba(34,197,94,.05)}
+.safeguard-bar .spin{width:16px;height:16px;border:2px solid rgba(139,92,246,.2);border-top-color:var(--neon-violet);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
+.safeguard-bar.resolved .spin{border:2px solid var(--green);border-top-color:transparent;animation:none;border-radius:50%}
+.safeguard-bar.resolved .spin::after{content:'\2713';display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--green);margin-top:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.safeguard-bar .txt{font-size:.85rem;color:var(--text-dim)}
+.safeguard-bar.resolved .txt{color:var(--green)}
+.reco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;padding:0 2rem 1rem;align-items:start}
+.reco-card{
+  background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);
+  padding:1.2rem;display:flex;flex-direction:column;transition:all .25s;
+  animation:cardIn .5s ease backwards;cursor:none;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05);
+}
+.reco-card:nth-child(1){animation-delay:.1s}
+.reco-card:nth-child(2){animation-delay:.2s}
+.reco-card:nth-child(3){animation-delay:.3s}
+.reco-card:nth-child(4){animation-delay:.4s}
+.reco-card:nth-child(5){animation-delay:.5s}
+.reco-card:nth-child(6){animation-delay:.6s}
+.reco-card:hover{border-color:rgba(139,92,246,.4);transform:translateY(-4px);box-shadow:0 8px 30px rgba(139,92,246,.15)}
+.reco-card.selected{border-color:var(--neon-violet);box-shadow:0 0 0 2px var(--neon-violet),0 8px 30px rgba(139,92,246,.25)}
+.reco-card-head{display:flex;align-items:start;justify-content:space-between;margin-bottom:.6rem}
+.reco-card-head h4{font-size:.9rem;font-weight:600}
+.reco-card-head .num{
+  background:rgba(25,15,42,.7);backdrop-filter:blur(15px);border:1px solid rgba(139,92,246,.35);
+  width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;color:var(--text-dim);font-weight:600;transition:all .2s;
+}
+.reco-card.selected .num{background:var(--neon-violet);border-color:var(--neon-violet);color:#fff;box-shadow:0 0 10px rgba(139,92,246,.4)}
+.reco-card .desc{font-size:.8rem;color:var(--text-dim);line-height:1.55;flex:1}
+.reco-card .evidence{margin-top:.8rem;padding-top:.6rem;border-top:1px solid rgba(139,92,246,.1)}
+.reco-card .evidence .label{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);margin-bottom:.3rem;font-weight:600}
+.reco-card .ev-id{font-size:.7rem;font-family:monospace;color:var(--text-faint);display:block;padding:.1rem 0;transition:color .2s}
+.reco-card:hover .ev-id{color:var(--text-dim)}
+.reco-card .select-btn{
+  margin-top:.8rem;background:rgba(25,15,42,.7);backdrop-filter:blur(15px);border:1px solid rgba(139,92,246,.35);
+  color:var(--text-dim);padding:.45rem;border-radius:6px;font-size:.75rem;
+  text-align:center;transition:all .2s;
+}
+.reco-card .select-btn:hover{border-color:var(--neon-violet);color:var(--text);background:rgba(139,92,246,.08)}
+.reco-card.selected .select-btn{background:var(--neon-violet);color:#fff;border-color:var(--neon-violet);box-shadow:0 0 10px rgba(139,92,246,.3)}
+
+/* ===== Outcome Recording ===== */
+.outcome-section{
+  background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);
+  padding:1.5rem;margin:0 2rem 1.5rem;animation:cardIn .4s ease;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05);
+}
+.outcome-section h3{font-size:1rem;font-weight:600;margin-bottom:.4rem}
+.outcome-section .inst{font-size:.85rem;color:var(--text-dim);margin-bottom:1rem}
+.warn-box{
+  background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);
+  border-radius:var(--radius-sm);padding:.8rem 1rem;margin-bottom:1.2rem;
+  font-size:.8rem;color:var(--neon-violet2);
+}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.btn-record{
+  background:var(--neon-violet);color:#fff;padding:.6rem 1.5rem;
+  border-radius:var(--radius-sm);font-weight:600;font-size:.85rem;
+  transition:all .2s;box-shadow:0 0 15px rgba(139,92,246,.3);
+}
+.btn-record:hover{background:var(--neon-violet2);transform:translateY(-2px);box-shadow:0 4px 25px rgba(139,92,246,.5)}
+.btn-record:disabled{opacity:.5;cursor:none}
+
+/* ===== Outcome Recorded ===== */
+.outcome-recorded{
+  background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);
+  padding:1.5rem;margin:0 2rem 1.5rem;text-align:center;animation:cardIn .5s ease;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05);
+}
+.outcome-recorded .check-circle{
+  width:48px;height:48px;border-radius:50%;background:rgba(34,197,94,.15);
+  display:flex;align-items:center;justify-content:center;margin:0 auto .8rem;
+  font-size:1.5rem;color:var(--green);animation:checkPop .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes checkPop{from{transform:scale(0)}to{transform:scale(1)}}
+.outcome-recorded h3{font-size:1.1rem;font-weight:600;margin-bottom:.3rem}
+.outcome-recorded .action-text{color:var(--text-dim);font-size:.85rem;margin-bottom:1.2rem}
+.outcome-recorded .status-badge{margin-left:.5rem}
+.outcome-recorded .body{font-size:.85rem;color:var(--text-dim);margin-bottom:1rem}
+.outcome-data{display:flex;justify-content:center;gap:3rem;margin-bottom:1rem}
+.outcome-data .item .label{font-size:.7rem;color:var(--text-faint);text-transform:uppercase}
+.outcome-data .item .val{font-size:1.1rem;font-weight:600}
+.outcome-data .item .val.green{color:var(--green)}
+.outcome-data .item .val.red{color:var(--red)}
+.lifecycle-note{
+  margin-top:1rem;padding:.6rem 1rem;border:1px solid var(--gold);border-radius:var(--radius-sm);
+  font-size:.75rem;color:var(--gold);display:inline-block;
+}
+
+.decision-history{margin:0 2rem 2rem}
+.decision-history h3{font-size:.9rem;font-weight:600;margin-bottom:.5rem}
+.decision-history .sub{font-size:.78rem;color:var(--text-faint);margin-bottom:.8rem}
+.decision-row{
+  display:flex;align-items:center;gap:1rem;padding:.6rem 0;
+  border-bottom:1px solid rgba(139,92,246,.08);font-size:.8rem;
+  animation:rowIn .4s ease backwards;
+}
+.decision-row .ts{color:var(--text-faint);font-family:monospace;width:120px}
+.decision-row .action{color:var(--text)}
+.decision-row .actor{color:var(--text-dim);margin-left:auto}
+
+/* ========== HOW IT WORKS ========== */
+.how-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin-bottom:1.5rem}
+.how-card{background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);padding:1.5rem;animation:cardIn .5s ease backwards;transition:transform .2s,border-color .2s;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05)}
+.how-card:hover{transform:translateY(-3px);border-color:rgba(139,92,246,.3)}
+.how-card:nth-child(1){animation-delay:.1s}
+.how-card:nth-child(2){animation-delay:.2s}
+.how-card:nth-child(3){animation-delay:.3s}
+.how-card:nth-child(4){animation-delay:.4s}
+.how-card:nth-child(5){animation-delay:.5s}
+.how-card:nth-child(6){animation-delay:.6s}
+.how-card h3{font-size:1rem;font-weight:600;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+.how-card h3 .step-num{width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,.15);border:1px solid var(--neon-violet);color:var(--neon-violet2);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;transition:transform .3s}
+.how-card:hover .step-num{transform:rotate(360deg) scale(1.1)}
+.how-card .hw-desc{font-size:.85rem;color:var(--text-dim);line-height:1.6;margin-bottom:.8rem}
+.how-card .hw-tech{font-size:.7rem;color:var(--text-faint);font-family:monospace;background:rgba(10,5,16,.8);padding:.3rem .6rem;border-radius:4px;display:inline-block}
+.arch-diagram{background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);padding:2rem;margin-bottom:1.5rem;animation:cardIn .5s ease;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05)}
+.arch-diagram h3{font-size:1rem;font-weight:600;margin-bottom:1.2rem;text-align:center}
+.arch-flow{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
+.arch-node{background:rgba(25,18,40,.7);border:1px solid rgba(139,92,246,.3);border-radius:var(--radius-sm);padding:.8rem 1.2rem;text-align:center;min-width:120px;transition:all .3s;cursor:none;backdrop-filter:blur(15px)}
+.arch-node:hover{transform:translateY(-3px);border-color:var(--neon-violet);box-shadow:0 0 20px rgba(139,92,246,.15)}
+.arch-node .an-title{font-size:.8rem;font-weight:600;margin-bottom:.2rem}
+.arch-node .an-sub{font-size:.65rem;color:var(--text-faint)}
+.arch-arrow{color:var(--text-faint);font-size:1.2rem;margin:0 .3rem;animation:arrowPulse 2s infinite}
+@keyframes arrowPulse{0%,100%{opacity:.4;transform:translateX(0)}50%{opacity:1;transform:translateX(3px)}}
+.arch-node.highlight{border-color:var(--orange);background:rgba(249,115,22,.08)}
+.arch-node.highlight .an-title{color:var(--orange2)}
+.arch-node.accent{border-color:var(--neon-violet);background:rgba(139,92,246,.1)}
+.arch-node.accent .an-title{color:var(--neon-violet2)}
+.agent-pipeline{display:grid;grid-template-columns:repeat(6,1fr);gap:.5rem;margin-bottom:1.5rem}
+.agent-box{background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius-sm);padding:.8rem;text-align:center;transition:all .3s;cursor:none;animation:cardIn .4s ease backwards;backdrop-filter:blur(15px)}
+.agent-box:nth-child(1){animation-delay:.1s}
+.agent-box:nth-child(2){animation-delay:.15s}
+.agent-box:nth-child(3){animation-delay:.2s}
+.agent-box:nth-child(4){animation-delay:.25s}
+.agent-box:nth-child(5){animation-delay:.3s}
+.agent-box:nth-child(6){animation-delay:.35s}
+.agent-box:hover{transform:translateY(-4px) scale(1.05);border-color:var(--neon-violet);box-shadow:0 8px 20px rgba(139,92,246,.2)}
+.agent-box .ab-icon{font-size:1.2rem;margin-bottom:.3rem}
+.agent-box .ab-name{font-size:.75rem;font-weight:600}
+.agent-box .ab-role{font-size:.65rem;color:var(--text-faint);margin-top:.2rem}
+.principle-list{list-style:none;padding:0}
+.principle-list li{font-size:.85rem;color:var(--text-dim);padding:.4rem 0;padding-left:1.5rem;position:relative}
+.principle-list li::before{content:'\2713';position:absolute;left:0;color:var(--green);font-weight:700}
+
+/* ========== HELD-OUT REPORT ========== */
+.report-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.report-card{background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);padding:1.2rem;animation:cardIn .5s ease backwards;transition:transform .2s,border-color .2s;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05)}
+.report-card:hover{transform:translateY(-3px);border-color:rgba(139,92,246,.3)}
+.report-card:nth-child(1){animation-delay:.1s}
+.report-card:nth-child(2){animation-delay:.2s}
+.report-card:nth-child(3){animation-delay:.3s}
+.report-card:nth-child(4){animation-delay:.4s}
+.report-card .label{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);font-weight:600}
+.report-card .value{font-size:1.8rem;font-weight:700;margin:.3rem 0;color:#f0f0ff;text-shadow:0 0 20px rgba(139,92,246,.3),0 0 10px rgba(255,255,255,.1)}
+.report-card .sub{font-size:.75rem;color:var(--text-dim)}
+
+/* ========== MODELS & POLICIES ========== */
+.mp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.mp-card{background:rgba(20,12,35,.7);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);padding:1.5rem;animation:cardIn .5s ease backwards;transition:transform .2s,border-color .2s;backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 20px rgba(139,92,246,.05)}
+.mp-card:hover{transform:translateY(-3px);border-color:rgba(139,92,246,.3)}
+.mp-card:nth-child(1){animation-delay:.1s}
+.mp-card:nth-child(2){animation-delay:.2s}
+.mp-card:nth-child(3){animation-delay:.3s}
+.mp-card:nth-child(4){animation-delay:.4s}
+.mp-card h3{font-size:.9rem;font-weight:600;margin-bottom:.8rem}
+.mp-card .mp-row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid rgba(139,92,246,.08);font-size:.8rem;transition:padding-left .2s,color .2s}
+.mp-card .mp-row:hover{padding-left:.5rem;color:var(--neon-violet2)}
+.mp-card .mp-row:last-child{border-bottom:none}
+.mp-card .mp-row .val{color:var(--text-dim);font-family:monospace}
+
+/* ===== Responsive ===== */
+@media(max-width:1100px){
+  .metric-cards{grid-template-columns:repeat(2,1fr)}
+  .reco-grid{grid-template-columns:repeat(2,1fr)}
+  .dash-grid{grid-template-columns:1fr}
+  .bottom-panels{grid-template-columns:1fr}
+  .how-grid{grid-template-columns:1fr}
+  .agent-pipeline{grid-template-columns:repeat(3,1fr)}
+  .arch-flow{flex-direction:column;gap:.5rem}
+  .arch-arrow{transform:rotate(90deg)}
+}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main-area{margin-left:0}
+  .landing-hero{grid-template-columns:1fr;padding:2rem 1.5rem}
+  .hero-left h1{font-size:2rem}
+  .landing-nav{padding:1rem 1.5rem}
+  .reco-grid{grid-template-columns:1fr}
+  .report-grid{grid-template-columns:repeat(2,1fr)}
+  .mp-grid{grid-template-columns:1fr}
+  .content,.page-header,.invest-header{padding-left:1rem;padding-right:1rem}
+  .outcome-section,.reco-grid,.decision-history{margin-left:1rem;margin-right:1rem}
+  .agent-pipeline{grid-template-columns:repeat(2,1fr)}
+  .invest-header .actions{position:static;margin-bottom:.5rem}
+  .page-header .actions{position:static;margin-bottom:.5rem}
+  body{cursor:auto}
+  .cursor-dot,.cursor-ring{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ========== CUSTOM CURSOR ========== -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ============================================================ -->
+<!-- LANDING PAGE                                                  -->
+<!-- ============================================================ -->
+<div id="landing" class="page active">
+  <nav class="landing-nav">
+    <div class="landing-brand">
+      <div class="logo">SK</div>
+      <span>ShieldKnot AI &middot; Fraud Spike Intercept</span>
+    </div>
+    <div class="landing-nav-links">
+      <a href="#" onclick="scrollToSection('capabilities')">Capabilities</a>
+      <a href="#" onclick="requireAuth('howitworks')">How it works</a>
+      <a href="#" onclick="requireAuth('models')">Governance</a>
+    </div>
+    <div class="landing-nav-actions">
+      <button class="btn-ghost" onclick="showLogin()">Request access</button>
+      <button class="btn-primary" onclick="showLogin()">View demo &rarr;</button>
+    </div>
+  </nav>
+
+  <div class="landing-hero">
+    <div class="hero-left">
+      <div class="hero-tag"><span class="dot"></span> ShieldKnot AI &middot; Track 02 &middot; AI Risk Manager</div>
+      <h1>Detect Fraud Spikes Before They <span class="accent">Escalate</span></h1>
+      <p class="sub">Real-time fraud-spike detection with multi-agent investigation. A human reviews every recommendation and a deterministic policy engine authorizes each action to stop fraud and protect revenue. ShieldKnot ties the knot around fraud before it spreads.</p>
+      <div class="cta-row">
+        <button class="btn-primary" onclick="showLogin()">View demo</button>
+        <button class="btn-ghost" onclick="showLogin()">Sign in &rarr;</button>
+      </div>
+      <div class="cta-note">Honest metrics including false-positive cost. Strictly defense-only.</div>
+    </div>
+    <div class="hero-right">
+      <div class="dash-preview">
+        <div class="dash-preview-head">
+          <div class="dash-live"><span class="live-dot"></span><span class="live-text">LIVE</span></div>
+          <h3>Fraud Spike Detected</h3>
+          <span class="time">10:18 AM</span>
+        </div>
+        <div class="dash-chart">
+          <svg viewBox="0 0 300 140" preserveAspectRatio="none">
+            <defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ef4444" stop-opacity=".3"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0,120 L30,115 L60,110 L90,100 L120,95 L150,85 L180,70 L210,50 L240,30 L270,15 L300,10 L300,140 L0,140 Z" fill="url(#lg1)"/>
+            <path d="M0,120 L30,115 L60,110 L90,100 L120,95 L150,85 L180,70 L210,50 L240,30 L270,15 L300,10" fill="none" stroke="#ef4444" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="dash-alert">
+          <div class="dash-alert-head"><span class="badge">ACTIVE ALERT</span><span class="sev">Critical</span></div>
+          <h4>Emerging Fraud Spike Detected</h4>
+          <div class="metrics">
+            <div class="metric"><div class="label">Relative Increase</div><div class="val">+312%</div></div>
+            <div class="metric"><div class="label">Total Impact</div><div class="val">&#8377;18.62K</div></div>
+          </div>
+          <div class="desc">Anomalous velocity detected in high-risk channel</div>
+          <div class="meta">10:18 AM &middot; <span class="pri">High Priority</span></div>
+          <div class="action-row"><span class="action-label">Analyst Action</span><button class="reject-btn">&#10005; Reject</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- LOGIN MODAL                                                  -->
+<!-- ============================================================ -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-modal">
+    <span class="close-x" onclick="hideLogin()">&times;</span>
+    <h2>Sign in to ShieldKnot</h2>
+    <p class="inst">Use a seeded operator account from your environment configuration.</p>
+    <div class="role-chips">
+      <button class="role-chip" onclick="selectRole(this,'analyst')">analyst</button>
+      <button class="role-chip" onclick="selectRole(this,'lead_analyst')">lead_analyst</button>
+      <button class="role-chip selected" onclick="selectRole(this,'admin')">admin</button>
+    </div>
+    <div class="form-group"><label>Username</label><input type="text" id="loginUser" value="admin@demo.local"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="loginPass" value=""></div>
+    <button class="btn-enter" onclick="doLogin()">Enter ShieldKnot</button>
+    <div class="login-footer">Demo sign-in is UI-only; no real credentials are required.</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APP: RISK DASHBOARD                                          -->
+<!-- ============================================================ -->
+<div id="dashboard-page" class="page">
+  <div class="app-shell">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main-area">
+      <div class="top-bar" id="topBar"></div>
+      <div class="page-header">
+        <div class="actions">
+          <button class="btn-primary" onclick="toggleStream()" id="streamBtn">Start demo stream</button>
+          <span style="font-size:.8rem;color:var(--green)">&#9679; Known fraud spike - 600x</span>
+          <span style="font-size:.8rem;color:var(--text-dim)" id="dashClock"></span>
+        </div>
+        <h1>Risk Operations</h1>
+        <p class="sub">Risk-density spike detection &middot; volume is context only</p>
+      </div>
+      <div class="content">
+        <div class="metric-cards">
+          <div class="metric-card"><div class="mc-label">Transactions Scored</div><div class="mc-value" id="txScored">921</div><div class="mc-sub">921 scored</div><div class="mc-detail">rank_preserving_isotonic_probability</div></div>
+          <div class="metric-card"><div class="mc-label">High-Risk Transactions</div><div class="mc-value" id="hrTx">99</div><div class="mc-sub">10.7% of scored traffic</div><svg class="sparkline" viewBox="0 0 50 24"><path d="M0,20 L10,18 L20,10 L30,5 L40,8 L50,2" fill="none" stroke="#ef4444" stroke-width="1.5"/></svg></div>
+          <div class="metric-card"><div class="mc-label">Active Incidents</div><div class="mc-value" id="activeIncCount">4</div><div class="mc-sub">4 total &middot; 1 critical</div></div>
+          <div class="metric-card"><div class="mc-label">Estimated Exposure</div><div class="mc-value">&#8377;4.2L</div><div class="mc-sub">baseline density 0.0000</div></div>
+        </div>
+        <div class="dash-grid">
+          <div class="chart-panel">
+            <h3>Risk Density Over Time</h3>
+            <div class="chart-area">
+              <svg viewBox="0 0 600 220" preserveAspectRatio="none" id="densityChart">
+                <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".25"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient></defs>
+                <line x1="0" y1="55" x2="600" y2="55" stroke="#1e2a45" stroke-dasharray="4 4"/>
+                <line x1="0" y1="110" x2="600" y2="110" stroke="#1e2a45" stroke-dasharray="4 4"/>
+                <line x1="0" y1="165" x2="600" y2="165" stroke="#1e2a45" stroke-dasharray="4 4"/>
+                <text x="5" y="50" fill="#5a6584" font-size="10">0.20</text>
+                <text x="5" y="105" fill="#5a6584" font-size="10">0.10</text>
+                <text x="5" y="160" fill="#5a6584" font-size="10">0.05</text>
+                <text x="5" y="215" fill="#5a6584" font-size="10">0.00</text>
+                <path id="chartPath" d="" fill="url(#chartGrad)"/>
+                <path id="chartLine" d="" fill="none" stroke="#8b5cf6" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="chart-footer">Primary calibrated model active.</div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Active Incidents</h3><span class="sub">Ranked by detection time</span></div>
+            <div style="font-size:.8rem" id="dashIncidentList"></div>
+          </div>
+        </div>
+        <div class="bottom-panels">
+          <div class="panel">
+            <div class="panel-head"><h3>Live Transactions</h3><span class="sub">Newest first</span></div>
+            <table class="tx-table">
+              <thead><tr><th>TIME</th><th>TRANSACTION</th><th>AMOUNT</th><th>RISK</th></tr></thead>
+              <tbody id="txTableBody"></tbody>
+            </table>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Alert Center</h3><span class="sub">Live operational notices</span></div>
+            <div class="alert-item"><div class="ai-title">Response Policy degraded</div><div class="ai-code">active_policy_missing</div><div class="ai-date">30/08/2026 &middot; 07:41:32</div></div>
+            <div class="alert-item"><div class="ai-title">Fraud model reloaded</div><div class="ai-code">model_checkpoint_v2.4.1</div><div class="ai-date">31/05/2026 &middot; 00:45:00</div></div>
+            <div class="alert-item"><div class="ai-title">Redpanda lag threshold</div><div class="ai-code">consumer_lag > 5000</div><div class="ai-date">31/05/2026 &middot; 00:12:18</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APP: INCIDENT QUEUE                                          -->
+<!-- ============================================================ -->
+<div id="incidents-page" class="page">
+  <div class="app-shell">
+    <div class="sidebar" id="sidebar-inc"></div>
+    <div class="main-area">
+      <div class="top-bar" id="topBar-inc"></div>
+      <div class="page-header"><h1>Incident Queue</h1><p class="sub">Every incident carries its detector evidence and ranked segments</p></div>
+      <div class="content">
+        <div class="filter-tabs">
+          <div class="filter-tab active" onclick="filterIncidents(this,'all')">All</div>
+          <div class="filter-tab" onclick="filterIncidents(this,'Detected')">Detected</div>
+          <div class="filter-tab" onclick="filterIncidents(this,'Investigating')">Investigating</div>
+          <div class="filter-tab" onclick="filterIncidents(this,'Awaiting review')">Awaiting review</div>
+          <div class="filter-tab" onclick="filterIncidents(this,'Awaiting Outcome')">Awaiting outcome</div>
+          <div class="filter-tab" onclick="filterIncidents(this,'Completed')">Completed</div>
+        </div>
+        <div class="incident-count" id="incCount"></div>
+        <table class="inc-table">
+          <thead><tr><th>INCIDENT</th><th>STATUS</th><th>SEVERITY</th><th>DETECTED</th><th>DENSITY LIFT</th><th>VOLUME LIFT</th><th>EXPOSURE</th><th>SEGMENTS</th><th>ACTION</th></tr></thead>
+          <tbody id="incTableBody"></tbody>
+        </table>
+        <div class="table-note">Alerts fire on calibrated risk density. A benign surge with high volume and normal density does not appear here.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APP: INVESTIGATION                                           -->
+<!-- ============================================================ -->
+<div id="investigation-page" class="page">
+  <div class="app-shell">
+    <div class="sidebar" id="sidebar-inv"></div>
+    <div class="main-area">
+      <div class="top-bar" id="topBar-inv"></div>
+      <div class="invest-header">
+        <div class="actions">
+          <button class="btn-ghost" onclick="navigate('incidents')">Incident queue</button>
+          <span style="font-size:.8rem;color:var(--text-dim)" id="invClock">13:48:19</span>
+          <div class="user-chip"><div class="avatar">A</div><span>admin</span></div>
+        </div>
+        <div style="margin-right:400px"><h1>Investigation &middot; <span id="invIncidentId">INC-20260531-0001</span></h1><p class="sub">Evidence-backed findings, response options, and human authorization</p></div>
+      </div>
+      <div class="safeguard-bar" id="safeguardBar">
+        <div class="spin"></div>
+        <span class="txt" id="safeguardTxt"><strong>Response safeguards</strong> &mdash; Whether the recommendation can proceed to an authorized reviewer. Safeguard review is not available yet.</span>
+      </div>
+      <div class="reco-grid" id="recoGrid">
+        <div class="reco-card" onclick="selectReco(this,1)"><div class="reco-card-head"><h4>Human Escalation</h4><div class="num">1</div></div><div class="desc">The high risk density of 0.677 and significant density lift of 17.007 for card payments necessitate immediate expert oversight to address the concentrated risk profile.</div><div class="evidence"><div class="label">Evidence</div><span class="ev-id">EVD-1d80eb6e13fac3c3</span><span class="ev-id">EVD-a1ccba51b415d05e</span><span class="ev-id">EVD-bffaff9b021da23e</span></div><div class="select-btn">Select recommendation</div></div>
+        <div class="reco-card" onclick="selectReco(this,2)"><div class="reco-card-head"><h4>Manual Review</h4><div class="num">2</div></div><div class="desc">Manual inspection of the 31 transactions in the card payment segment is required to validate the high fraud exposure of &#8377;64,341.84 INR.</div><div class="evidence"><div class="label">Evidence</div><span class="ev-id">EVD-1d80eb6e13fac3c3</span></div><div class="select-btn">Select recommendation</div></div>
+        <div class="reco-card" onclick="selectReco(this,3)"><div class="reco-card-head"><h4>Enhanced Monitoring</h4><div class="num">3</div></div><div class="desc">Increased monitoring is necessary due to the elevated risk densities observed across Android channels and specific customer tenures within the card payment segment.</div><div class="evidence"><div class="label">Evidence</div><span class="ev-id">EVD-1895b2d8b155d3d</span><span class="ev-id">EVD-65486cc4f8aca5a4</span><span class="ev-id">EVD-8596663e3d95e3c3</span></div><div class="select-btn">Select recommendation</div></div>
+        <div class="reco-card" onclick="selectReco(this,4)"><div class="reco-card-head"><h4>No Action</h4><div class="num">4</div></div><div class="desc">No action is appropriate for the portion of the segment that does not meet the high-risk threshold, balancing the &#8377;400.00 INR false positive exposure.</div><div class="evidence"><div class="label">Evidence</div><span class="ev-id">EVD-1d80eb6e13fac3c3</span></div><div class="select-btn">Select recommendation</div></div>
+        <div class="reco-card" onclick="selectReco(this,5)"><div class="reco-card-head"><h4>Step Up Verification</h4><div class="num">5</div></div><div class="desc">Step up verification is reserved for transactions where risk indicators are present but insufficient to warrant immediate blocking, mitigating potential friction.</div><div class="evidence"><div class="label">Evidence</div><span class="ev-id">EVD-1d80eb6e13fac3c3</span></div><div class="select-btn">Select recommendation</div></div>
+        <div class="reco-card" onclick="selectReco(this,6)"><div class="reco-card-head"><h4>Temporary Defensive Rule</h4><div class="num">6</div></div><div class="desc">A temporary rule is the final defensive measure to contain the identified risk while awaiting deterministic policy updates.</div><div class="evidence"><div class="label">Evidence</div><span class="ev-id">EVD-1d80eb6e13fac3c3</span></div><div class="select-btn">Select recommendation</div></div>
+      </div>
+      <div id="outcomeSection" style="display:none">
+        <div class="outcome-section">
+          <h3>Record Outcome</h3>
+          <p class="inst">Escalated for human handling. Record the outcome after the downstream review resolves.</p>
+          <div class="warn-box">&#9888; Use verified operational results only. Recording an outcome completes the incident and cannot be changed.</div>
+          <div class="form-group"><label>Selected recommendation</label><input type="text" id="selectedReco" value="" readonly style="opacity:.7"></div>
+          <div class="form-group"><label>Observed outcome</label><select id="outcomeSelect"><option value="">-- choose the observed outcome --</option><option value="fraud_prevented">Fraud prevented</option><option value="fraud_loss">Fraud loss confirmed</option><option value="false_positive">False positive</option><option value="partial">Partial prevention</option></select></div>
+          <div class="form-row"><div class="form-group"><label>Fraud loss / prevented amount (&#8377;)</label><input type="number" id="fraudAmount" placeholder="Enter 0 if none" value="2000"></div><div class="form-group"><label>False-positive cost (&#8377;)</label><input type="number" id="fpCost" placeholder="Enter 0 if none" value="25"></div></div>
+          <p style="font-size:.75rem;color:var(--text-faint);margin-bottom:.8rem">For Loss prevented, enter the verified prevented amount in the fraud loss / prevented amount field.</p>
+          <div class="form-group"><label>Outcome notes</label><textarea id="outcomeNotes" placeholder="Optional operational context or downstream review result"></textarea></div>
+          <button class="btn-record" id="recordBtn" onclick="recordOutcome()" disabled>Select a recommendation and outcome first</button>
+        </div>
+      </div>
+      <div id="outcomeRecorded" style="display:none">
+        <div class="outcome-recorded">
+          <div class="check-circle">&#10003;</div>
+          <h3>Outcome recorded <span class="status-badge status-completed">Incident completed</span></h3>
+          <div class="action-text">Final action: <strong id="finalAction">Human Escalation</strong></div>
+          <div class="body">The verified operational result is stored with this decision.</div>
+          <div class="outcome-data"><div class="item"><div class="label">Fraud loss / prevented amount</div><div class="val green" id="finalFraudAmt">&#8377;2,000.00</div></div><div class="item"><div class="label">False-positive cost</div><div class="val red" id="finalFpCost">&#8377;25.00</div></div></div>
+          <div class="lifecycle-note">Lifecycle complete &middot; Outcome recorded and incident completed</div>
+          <div style="font-size:.75rem;color:var(--text-faint);margin-top:.8rem">Recorded outcomes are immutable.</div>
+        </div>
+      </div>
+      <div class="decision-history"><h3>Decision History</h3><p class="sub">Recorded analyst actions and outcomes</p><div id="decisionHistory"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APP: HOW IT WORKS                                            -->
+<!-- ============================================================ -->
+<div id="howitworks-page" class="page">
+  <div class="app-shell">
+    <div class="sidebar" id="sidebar-hw"></div>
+    <div class="main-area">
+      <div class="top-bar" id="topBar-hw"></div>
+      <div class="page-header"><h1>How It Works</h1><p class="sub">Multi-agent architecture for real-time fraud-spike detection, investigation, and human-authorized response</p></div>
+      <div class="content">
+        <div class="arch-diagram"><h3>System Architecture</h3>
+          <div class="arch-flow">
+            <div class="arch-node"><div class="an-title">Transaction Stream</div><div class="an-sub">Redpanda Kafka</div></div>
+            <div class="arch-arrow">&rarr;</div>
+            <div class="arch-node accent"><div class="an-title">Fraud Model</div><div class="an-sub">Calibrated risk density</div></div>
+            <div class="arch-arrow">&rarr;</div>
+            <div class="arch-node highlight"><div class="an-title">Spike Detector</div><div class="an-sub">Density lift > threshold</div></div>
+            <div class="arch-arrow">&rarr;</div>
+            <div class="arch-node accent"><div class="an-title">Multi-Agent LLM</div><div class="an-sub">6 specialized agents</div></div>
+            <div class="arch-arrow">&rarr;</div>
+            <div class="arch-node highlight"><div class="an-title">Response Policy</div><div class="an-sub">Deterministic safeguard</div></div>
+            <div class="arch-arrow">&rarr;</div>
+            <div class="arch-node"><div class="an-title">Human Reviewer</div><div class="an-sub">Records outcome</div></div>
+          </div>
+        </div>
+        <div class="how-grid">
+          <div class="how-card"><h3><span class="step-num">1</span> Ingest & Score</h3><div class="hw-desc">Every transaction flows through Redpanda into the fraud model. The model assigns a calibrated risk-density score using rank-preserving isotonic regression. Volume is tracked as context only &mdash; a benign surge with normal density does not trigger an alert.</div><div class="hw-tech">rank_preserving_isotonic_probability</div></div>
+          <div class="how-card"><h3><span class="step-num">2</span> Spike Detection</h3><div class="hw-desc">The detector continuously compares rolling risk-density windows against baseline. When density lift exceeds the calibrated threshold (e.g. x4.15 above baseline), an incident is created. Volume lift and exposure are calculated as supporting context.</div><div class="hw-tech">density_lift > 1.0 & calibrated_threshold</div></div>
+          <div class="how-card"><h3><span class="step-num">3</span> Multi-Agent Investigation</h3><div class="hw-desc">Six specialized LLM agents analyze the incident in parallel. Each agent examines a specific dimension &mdash; payment channel, device fingerprint, customer tenure, geography, velocity, and amount distribution. They gather evidence and produce ranked findings with EVD identifiers.</div><div class="hw-tech">LLM @ temperature=0.2, max 10 evidence per segment</div></div>
+          <div class="how-card"><h3><span class="step-num">4</span> Recommendation Generation</h3><div class="hw-desc">The agents synthesize their findings into 6 ranked recommendations: Human Escalation, Manual Review, Enhanced Monitoring, No Action, Step Up Verification, and Temporary Defensive Rule. Each recommendation cites the evidence IDs that support it, so the reviewer can trace every claim.</div><div class="hw-tech">6 recommendations with evidence-linked provenance</div></div>
+          <div class="how-card"><h3><span class="step-num">5</span> Safeguard & Authorization</h3><div class="hw-desc">Before any recommendation reaches a human, the deterministic response policy engine runs safeguard checks. Auto-block is disabled by default. Every action requires human authorization. If the policy engine is degraded (e.g. active_policy_missing), the safeguard bar shows a pending spinner and the incident waits.</div><div class="hw-tech">deterministic_policy &middot; human_review=required</div></div>
+          <div class="how-card"><h3><span class="step-num">6</span> Outcome Recording</h3><div class="hw-desc">The human reviewer selects a recommendation, records the observed outcome (fraud prevented, fraud loss, false positive, partial), and enters verified financial figures. The reward model uses this recorded outcome to calibrate future decisions. Once recorded, the outcome is immutable and the incident lifecycle closes.</div><div class="hw-tech">outcome_calibrated_reward_model &middot; immutable records</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>The 6 Investigation Agents</h3><span class="sub">Each agent specializes in one dimension of fraud analysis</span></div>
+          <div class="agent-pipeline">
+            <div class="agent-box"><div class="ab-icon">&#128179;</div><div class="ab-name">Channel Agent</div><div class="ab-role">Payment method analysis</div></div>
+            <div class="agent-box"><div class="ab-icon">&#128241;</div><div class="ab-name">Device Agent</div><div class="ab-role">Android/iOS fingerprint</div></div>
+            <div class="agent-box"><div class="ab-icon">&#9201;</div><div class="ab-name">Tenure Agent</div><div class="ab-role">Customer age & history</div></div>
+            <div class="agent-box"><div class="ab-icon">&#127758;</div><div class="ab-name">Geo Agent</div><div class="ab-role">Geographic clustering</div></div>
+            <div class="agent-box"><div class="ab-icon">&#9889;</div><div class="ab-name">Velocity Agent</div><div class="ab-role">Transaction speed patterns</div></div>
+            <div class="agent-box"><div class="ab-icon">&#8377;</div><div class="ab-name">Amount Agent</div><div class="ab-role">Value distribution analysis</div></div>
+          </div>
+        </div>
+        <div class="how-grid" style="margin-top:0">
+          <div class="how-card"><h3>Defense-Only Design</h3><div class="hw-desc">The system is strictly defense-only. It detects, investigates, and recommends defensive actions. It cannot be used for offensive fraud, account takeover, or any capability that could harm users. Anything offense-capable is disqualified from the buildathon track.</div><ul class="principle-list"><li>Auto-block disabled by default</li><li>Human authorization required for every action</li><li>Deterministic policy engine as final gate</li><li>No offense-capable features</li></ul></div>
+          <div class="how-card"><h3>Honest Metrics</h3><div class="hw-desc">The held-out report shows real precision (0.87), recall (0.92), and false-positive cost (&#8377;400 avg). The reward model weights false positives at 0.15 and fraud loss at 1.00, ensuring the system is penalized for over-flagging legitimate transactions. Net savings on the test set: &#8377;8,92,400.</div><ul class="principle-list"><li>Precision and recall on held-out test set</li><li>False-positive cost reported transparently</li><li>Reward model calibrates from recorded outcomes</li><li>Outcomes are immutable once recorded</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APP: MODELS & POLICIES                                       -->
+<!-- ============================================================ -->
+<div id="models-page" class="page">
+  <div class="app-shell">
+    <div class="sidebar" id="sidebar-mp"></div>
+    <div class="main-area">
+      <div class="top-bar" id="topBar-mp"></div>
+      <div class="page-header"><h1>Models & Policies</h1><p class="sub">Active model checkpoints and response policy configuration</p></div>
+      <div class="content">
+        <div class="mp-grid">
+          <div class="mp-card"><h3>Fraud Model</h3><div class="mp-row"><span>Model name</span><span class="val">rank_preserving_isotonic</span></div><div class="mp-row"><span>Checkpoint</span><span class="val">v2.4.1</span></div><div class="mp-row"><span>Calibration</span><span class="val">isotonic_regression</span></div><div class="mp-row"><span>Threshold</span><span class="val">0.677</span></div><div class="mp-row"><span>Status</span><span class="val" style="color:var(--green)">active</span></div></div>
+          <div class="mp-card"><h3>LLM Agent</h3><div class="mp-row"><span>Model</span><span class="val">gpt-4o-mini</span></div><div class="mp-row"><span>Agents</span><span class="val">6</span></div><div class="mp-row"><span>Max evidence</span><span class="val">10 per segment</span></div><div class="mp-row"><span>Temperature</span><span class="val">0.2</span></div><div class="mp-row"><span>Status</span><span class="val" style="color:var(--green)">active</span></div></div>
+          <div class="mp-card"><h3>Reward Model</h3><div class="mp-row"><span>Type</span><span class="val">outcome_calibrated</span></div><div class="mp-row"><span>False-positive weight</span><span class="val">0.15</span></div><div class="mp-row"><span>Fraud-loss weight</span><span class="val">1.00</span></div><div class="mp-row"><span>Status</span><span class="val" style="color:var(--green)">active</span></div></div>
+          <div class="mp-card"><h3>Response Policy</h3><div class="mp-row"><span>Engine</span><span class="val">deterministic</span></div><div class="mp-row"><span>Auto-block</span><span class="val">disabled</span></div><div class="mp-row"><span>Human review</span><span class="val">required</span></div><div class="mp-row"><span>Safeguard</span><span class="val" style="color:var(--gold)">pending</span></div><div class="mp-row"><span>Status</span><span class="val" style="color:var(--red)">degraded</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APP: HELD-OUT REPORT                                         -->
+<!-- ============================================================ -->
+<div id="report-page" class="page">
+  <div class="app-shell">
+    <div class="sidebar" id="sidebar-rp"></div>
+    <div class="main-area">
+      <div class="top-bar" id="topBar-rp"></div>
+      <div class="page-header"><h1>Held-out Report</h1><p class="sub">Honest metrics on the held-out test set, including false-positive cost</p></div>
+      <div class="content">
+        <div class="report-grid">
+          <div class="report-card"><div class="label">Precision</div><div class="value" style="color:var(--green)">0.87</div><div class="sub">True positives / all flagged</div></div>
+          <div class="report-card"><div class="label">Recall</div><div class="value" style="color:var(--neon-violet2)">0.92</div><div class="sub">Fraud caught / all fraud</div></div>
+          <div class="report-card"><div class="label">False Positive Cost</div><div class="value" style="color:var(--neon-violet2)">&#8377;400</div><div class="sub">Avg cost per false alarm</div></div>
+          <div class="report-card"><div class="label">F1 Score</div><div class="value">0.89</div><div class="sub">Harmonic mean of P & R</div></div>
+        </div>
+        <div class="panel" style="margin-top:1rem">
+          <div class="panel-head"><h3>Detailed Metrics</h3><span class="sub">Test set: 10,000 transactions &middot; 500 fraud</span></div>
+          <table class="tx-table">
+            <thead><tr><th>METRIC</th><th>VALUE</th><th>NOTES</th></tr></thead>
+            <tbody>
+              <tr><td>True Positives</td><td>460</td><td>Fraud correctly flagged</td></tr>
+              <tr><td>False Positives</td><td>69</td><td>Legitimate flagged as fraud</td></tr>
+              <tr><td>True Negatives</td><td>9,431</td><td>Legitimate correctly passed</td></tr>
+              <tr><td>False Negatives</td><td>40</td><td>Fraud missed</td></tr>
+              <tr><td>Total fraud prevented</td><td style="color:var(--green)">&#8377;9,20,000</td><td>Estimated</td></tr>
+              <tr><td>Total false-positive cost</td><td style="color:var(--neon-violet2)">&#8377;27,600</td><td>69 &times; &#8377;400 avg</td></tr>
+              <tr><td>Net savings</td><td style="color:var(--green);font-weight:600">&#8377;8,92,400</td><td>Prevented minus FP cost</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// CUSTOM CURSOR
+// =========================================================
+(function(){
+  var dot=document.getElementById('cursorDot'),ring=document.getElementById('cursorRing');
+  var mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});
+  function animRing(){
+    rx+=(mx-rx)*0.15;ry+=(my-ry)*0.15;
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+  // hover detection
+  document.addEventListener('mouseover',function(e){
+    if(e.target&&(e.target.tagName==='BUTTON'||e.target.tagName==='A'||e.target.classList.contains('reco-card')||e.target.classList.contains('sidebar-item')||e.target.classList.contains('filter-tab')||e.target.classList.contains('arch-node')||e.target.classList.contains('agent-box')||e.target.tagName==='INPUT'||e.target.tagName==='SELECT')){
+      dot.classList.add('hover');ring.classList.add('hover');
+    }
+  });
+  document.addEventListener('mouseout',function(e){
+    if(e.target&&(e.target.tagName==='BUTTON'||e.target.tagName==='A'||e.target.classList.contains('reco-card')||e.target.classList.contains('sidebar-item')||e.target.classList.contains('filter-tab')||e.target.classList.contains('arch-node')||e.target.classList.contains('agent-box')||e.target.tagName==='INPUT'||e.target.tagName==='SELECT')){
+      dot.classList.remove('hover');ring.classList.remove('hover');
+    }
+  });
+  // click effect
+  document.addEventListener('mousedown',function(){dot.style.transform='translate(-50%,-50%) scale(.5)';});
+  document.addEventListener('mouseup',function(){dot.style.transform='translate(-50%,-50%) scale(1)';});
+})();
+
+// =========================================================
+// STATE & DATA
+// =========================================================
+var appState={currentPage:'landing',user:'admin',streamActive:false,selectedReco:null,incidentCompleted:false,txScored:921,hrTx:99,activeIncidentId:'INC-20260531-0001'};
+
+var deps=['Postgres','Redis','Redpanda','Fraud model','LLM','Checkpoint','Reward model','Response policy'];
+
+var incidents=[
+  {id:'INC-20260531-0001',status:'Detected',severity:'critical',detected:'31/05/2026 01:00:00',densityLift:'x4.15',volumeLift:'x0.09',exposure:'\u20B91,01,683',segments:5,desc:'persistent calibrated risk-density lift'},
+  {id:'INC-20260901-0047',status:'Investigating',severity:'high',detected:'01/09/2026 14:32:00',densityLift:'x2.83',volumeLift:'x1.45',exposure:'\u20B948,200',segments:3,desc:'UPI channel velocity anomaly'},
+  {id:'INC-20260902-0113',status:'Awaiting review',severity:'high',detected:'02/09/2026 09:15:00',densityLift:'x6.07',volumeLift:'x0.82',exposure:'\u20B92,15,400',segments:7,desc:'card-not-present fraud ring'},
+  {id:'INC-20260903-0089',status:'Awaiting Outcome',severity:'unrated',detected:'03/09/2026 22:47:00',densityLift:'x3.41',volumeLift:'x2.10',exposure:'\u20B976,500',segments:4,desc:'Android device clustering spike'},
+  {id:'INC-20260828-0003',status:'Completed',severity:'unrated',detected:'28/08/2026 11:20:00',densityLift:'x5.22',volumeLift:'x0.67',exposure:'\u20B91,45,000',segments:6,desc:'chargeback evidence responder triggered'},
+  {id:'INC-20260830-0012',status:'Completed',severity:'high',detected:'30/08/2026 16:05:00',densityLift:'x8.15',volumeLift:'x3.24',exposure:'\u20B93,20,000',segments:8,desc:'abuse-ring knot detected'},
+  {id:'INC-20260901-0051',status:'Detected',severity:'unrated',detected:'01/09/2026 18:40:00',densityLift:'x1.92',volumeLift:'x0.55',exposure:'\u20B922,300',segments:2,desc:'return-risk scorer flagged batch'},
+];
+
+var recoNames={1:'Human Escalation',2:'Manual Review',3:'Enhanced Monitoring',4:'No Action',5:'Step Up Verification',6:'Temporary Defensive Rule'};
+
+var sidebarHTML='\
+<div class="sidebar-brand"><div class="logo">SK</div><span>ShieldKnot AI</span></div>\
+<div class="sidebar-section"><div class="label">Operations</div>\
+<div class="sidebar-item" onclick="navigate(\'dashboard\')">Risk Dashboard</div>\
+<div class="sidebar-item" onclick="navigate(\'incidents\')">Incidents<span class="badge-count">4</span></div>\
+<div class="sidebar-item" onclick="navigate(\'investigation\')">Investigation</div>\
+</div>\
+<div class="sidebar-section"><div class="label">Governance</div>\
+<div class="sidebar-item" onclick="navigate(\'howitworks\')">How It Works</div>\
+<div class="sidebar-item" onclick="navigate(\'models\')">Models & Policies</div>\
+<div class="sidebar-item" onclick="navigate(\'report\')">Held-out Report</div>\
+</div>\
+<div class="sidebar-footer"><a href="#">Grafana dashboards</a><a href="#">MLflow experiments</a></div>';
+
+function topBarHTML(){
+  var dots=deps.map(function(d){return '<span class="dep"><span class="dot"></span>'+d+'</span>';}).join('');
+  return dots+'<div class="top-right"><span class="live-tag"><span class="dot"></span> live stream</span><div class="user-chip"><div class="avatar">A</div><span>'+appState.user+'</span></div><button class="btn-ghost" onclick="signOut()">Sign out</button></div>';
+}
+
+// =========================================================
+// NAVIGATION
+// =========================================================
+function navigate(page){
+  var pages=document.querySelectorAll('.page');
+  for(var i=0;i<pages.length;i++)pages[i].classList.remove('active');
+  var target=document.getElementById(page+'-page')||document.getElementById(page);
+  if(target)target.classList.add('active');
+  appState.currentPage=page;
+  injectChrome();
+  startClock();
+  if(page==='incidents')renderIncidents('all');
+  if(page==='dashboard')renderDashIncidents();
+  if(page==='investigation')initInvestigation();
+  window.scrollTo(0,0);
+}
+
+function injectChrome(){
+  var sbs=['sidebar','sidebar-inc','sidebar-inv','sidebar-mp','sidebar-rp','sidebar-hw'];
+  for(var i=0;i<sbs.length;i++){var el=document.getElementById(sbs[i]);if(el&&el.children.length===0)el.innerHTML=sidebarHTML;}
+  var tbs=['topBar','topBar-inc','topBar-inv','topBar-mp','topBar-rp','topBar-hw'];
+  for(var j=0;j<tbs.length;j++){var tel=document.getElementById(tbs[j]);if(tel&&tel.children.length===0)tel.innerHTML=topBarHTML();}
+  var items=document.querySelectorAll('.sidebar-item');
+  var map={dashboard:0,incidents:1,investigation:2,howitworks:3,models:4,report:5};
+  for(var k=0;k<items.length;k++)items[k].classList.remove('active');
+  if(map[appState.currentPage]!==undefined&&items[map[appState.currentPage]])items[map[appState.currentPage]].classList.add('active');
+}
+
+// =========================================================
+// LOGIN
+// =========================================================
+function showLogin(){document.getElementById('loginOverlay').classList.add('show');}
+function hideLogin(){document.getElementById('loginOverlay').classList.remove('show');}
+function selectRole(el,role){
+  var chips=document.querySelectorAll('.role-chip');
+  for(var i=0;i<chips.length;i++)chips[i].classList.remove('selected');
+  el.classList.add('selected');appState.user=role;
+  var um={analyst:'analyst@demo.local',lead_analyst:'lead@demo.local',admin:'admin@demo.local'};
+  document.getElementById('loginUser').value=um[role]||'admin@demo.local';
+}
+function doLogin(){
+  hideLogin();
+  authed=true;
+  injectChrome();
+  // Go to intended page if set, otherwise dashboard
+  var dest=appState.intendedPage||'dashboard';
+  appState.intendedPage=null;
+  navigate(dest);
+}
+function signOut(){authed=false;navigate('landing');}
+
+// =========================================================
+// LIVE CLOCK
+// =========================================================
+var clockInterval;
+function startClock(){
+  if(clockInterval)clearInterval(clockInterval);
+  function tick(){
+    var now=new Date();var h=String(now.getHours()).padStart(2,'0');var m=String(now.getMinutes()).padStart(2,'0');var s=String(now.getSeconds()).padStart(2,'0');var ts=h+':'+m+':'+s;
+    var els=document.querySelectorAll('#dashClock,#invClock');
+    for(var i=0;i<els.length;i++)if(els[i])els[i].textContent=ts;
+  }
+  tick();clockInterval=setInterval(tick,1000);
+}
+
+// =========================================================
+// CHART
+// =========================================================
+function drawChart(){
+  var path=document.getElementById('chartPath'),line=document.getElementById('chartLine');
+  if(!path||!line)return;
+  var points=[];var n=60;
+  for(var i=0;i<=n;i++){
+    var x=(i/n)*600;var base=200-(Math.sin(i*0.3)*15+Math.random()*10);
+    if(i>45)base-=(i-45)*8;if(i>55)base-=(i-55)*5;
+    points.push([x,Math.max(10,base)]);
+  }
+  var d='M'+points[0][0]+','+points[0][1];
+  for(var j=1;j<points.length;j++)d+=' L'+points[j][0]+','+points[j][1];
+  line.setAttribute('d',d);path.setAttribute('d',d+' L600,220 L0,220 Z');
+}
+
+// =========================================================
+// DEMO STREAM
+// =========================================================
+var streamInterval;
+function toggleStream(){
+  appState.streamActive=!appState.streamActive;
+  var btn=document.getElementById('streamBtn');
+  if(appState.streamActive){
+    btn.textContent='Stop demo stream';btn.style.background='var(--red)';
+    streamInterval=setInterval(function(){
+      appState.txScored+=Math.floor(Math.random()*5)+1;appState.hrTx+=Math.floor(Math.random()*2);
+      var ts=document.getElementById('txScored'),hr=document.getElementById('hrTx');
+      if(ts)ts.textContent=appState.txScored;if(hr)hr.textContent=appState.hrTx;
+      drawChart();
+      var tbody=document.getElementById('txTableBody');
+      if(tbody){
+        var now=new Date();
+        var time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+        var amt=Math.floor(Math.random()*5000)+500;
+        var risk=Math.random()>0.85?'1.000':'0.000';
+        var tr=document.createElement('tr');
+        tr.innerHTML='<td>'+time+'</td><td>TXN-'+Math.random().toString(36).substr(2,4)+'</td><td>\u20B9'+amt.toLocaleString('en-IN')+'</td><td class="'+(risk==='1.000'?'risk-high':'risk-zero')+'">'+risk+'</td>';
+        tr.style.animation='rowIn .4s ease';
+        tbody.insertBefore(tr,tbody.firstChild);
+        if(tbody.children.length>8)tbody.removeChild(tbody.lastChild);
+      }
+    },2000);
+  }else{btn.textContent='Start demo stream';btn.style.background='';if(streamInterval)clearInterval(streamInterval);}
+}
+
+// =========================================================
+// INCIDENT RENDERING
+// =========================================================
+function renderDashIncidents(){
+  var container=document.getElementById('dashIncidentList');
+  if(!container)return;
+  var html='';
+  var active=incidents.filter(function(i){return i.status!=='Completed';}).slice(0,3);
+  active.forEach(function(inc){
+    var sevClass=inc.severity==='critical'?'sev-critical':(inc.severity==='high'?'sev-high':'sev-unrated');
+    var statusClass='status-'+inc.status.toLowerCase().replace(/\s+/g,'');
+    html+='<div style="background:rgba(25,15,42,.7);backdrop-filter:blur(15px);border-radius:8px;padding:.8rem;margin-bottom:.5rem;border:1px solid rgba(139,92,246,.2);cursor:none;transition:all .2s" onclick="navigate(\'investigation\')" onmouseover="this.style.borderColor=\'var(--neon-violet)\'" onmouseout="this.style.borderColor=\'rgba(139,92,246,.2)\'">';
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:.4rem"><span style="font-weight:600;font-family:monospace;font-size:.75rem">'+inc.id+'</span><span class="status-badge '+statusClass+'">'+inc.status+'</span></div>';
+    html+='<div style="color:var(--text-dim);font-size:.7rem;margin-bottom:.4rem">'+inc.desc+'</div>';
+    html+='<div style="display:flex;gap:.8rem;font-size:.65rem"><span>Density: <strong style="color:var(--neon-violet2)">'+inc.densityLift+'</strong></span><span>Volume: <strong>'+inc.volumeLift+'</strong></span><span>Exposure: <strong style="color:var(--neon-violet2)">'+inc.exposure+'</strong></span></div>';
+    html+='</div>';
+  });
+  html+='<a href="#" class="reco-link" onclick="navigate(\'incidents\');return false;">All incidents &rarr;</a>';
+  container.innerHTML=html;
+}
+
+function renderIncidents(filter){
+  var tbody=document.getElementById('incTableBody');
+  if(!tbody)return;
+  var filtered=filter==='all'?incidents:incidents.filter(function(i){return i.status===filter;});
+  document.getElementById('incCount').textContent=filtered.length+' incident(s) \u00b7 filter: '+(filter==='all'?'All':filter);
+  tbody.innerHTML='';
+  filtered.forEach(function(inc,idx){
+    var sevClass=inc.severity==='critical'?'sev-critical':(inc.severity==='high'?'sev-high':'sev-unrated');
+    var statusClass='status-'+inc.status.toLowerCase().replace(/\s+/g,'');
+    var action=inc.status==='Completed'?'Recorded':'Reco';
+    var tr=document.createElement('tr');
+    tr.style.animationDelay=(idx*0.08)+'s';
+    tr.onclick=function(){appState.activeIncidentId=inc.id;navigate('investigation');};
+    tr.innerHTML='<td style="font-family:monospace;font-weight:600">'+inc.id+'</td>';
+    tr.innerHTML+='<td><span class="status-badge '+statusClass+'">'+inc.status+'</span></td>';
+    tr.innerHTML+='<td><span class="sev-badge '+sevClass+'">'+inc.severity+'</span></td>';
+    tr.innerHTML+='<td style="font-size:.75rem">'+inc.detected+'</td>';
+    tr.innerHTML+='<td style="color:var(--neon-violet2);font-weight:600">'+inc.densityLift+'</td>';
+    tr.innerHTML+='<td>'+inc.volumeLift+'</td>';
+    tr.innerHTML+='<td>'+inc.exposure+'</td>';
+    tr.innerHTML+='<td>'+inc.segments+'</td>';
+    tr.innerHTML+='<td><span class="reco-link">'+action+'</span></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function filterIncidents(el,filter){
+  var tabs=document.querySelectorAll('.filter-tab');
+  for(var i=0;i<tabs.length;i++)tabs[i].classList.remove('active');
+  el.classList.add('active');
+  renderIncidents(filter);
+}
+
+// =========================================================
+// INVESTIGATION
+// =========================================================
+var safeguardTimer=null;
+function initInvestigation(){
+  // Set incident ID
+  var idEl=document.getElementById('invIncidentId');
+  if(idEl)idEl.textContent=appState.activeIncidentId;
+  // Reset safeguard bar to loading state
+  var bar=document.getElementById('safeguardBar');
+  var txt=document.getElementById('safeguardTxt');
+  if(bar){bar.classList.remove('resolved');}
+  if(txt){txt.innerHTML='<strong>Response safeguards</strong> &mdash; Whether the recommendation can proceed to an authorized reviewer. Safeguard review is not available yet.';}
+  // Reset outcome sections
+  document.getElementById('outcomeSection').style.display='none';
+  document.getElementById('outcomeRecorded').style.display='none';
+  // Reset reco cards
+  var cards=document.querySelectorAll('.reco-card');
+  for(var i=0;i<cards.length;i++){cards[i].classList.remove('selected');cards[i].style.pointerEvents='';cards[i].style.opacity='';}
+  appState.selectedReco=null;appState.incidentCompleted=false;
+  var btn=document.getElementById('recordBtn');
+  if(btn){btn.disabled=true;btn.textContent='Select a recommendation and outcome first';}
+  var sel=document.getElementById('outcomeSelect');
+  if(sel)sel.value='';
+  // Render decision history
+  renderDecisionHistory();
+  // Auto-resolve safeguard after 3 seconds
+  if(safeguardTimer)clearTimeout(safeguardTimer);
+  safeguardTimer=setTimeout(function(){
+    var bar=document.getElementById('safeguardBar');
+    var txt=document.getElementById('safeguardTxt');
+    if(bar){bar.classList.add('resolved');}
+    if(txt){txt.innerHTML='<strong>Safeguards passed</strong> &mdash; Response policy verified. Recommendations can proceed to authorized reviewer.';}
+  },3000);
+}
+
+function renderDecisionHistory(){
+  var dh=document.getElementById('decisionHistory');
+  if(!dh)return;
+  dh.innerHTML='\
+  <div class="decision-row"><span class="ts">01:00:00</span><span class="action">Incident detected by spike detector</span><span class="actor">System</span></div>\
+  <div class="decision-row"><span class="ts">01:00:05</span><span class="action">Multi-agent investigation initiated</span><span class="actor">auto</span></div>\
+  <div class="decision-row"><span class="ts">01:00:12</span><span class="action">Evidence gathered across segments</span><span class="actor">investigator</span></div>\
+  <div class="decision-row"><span class="ts">01:00:18</span><span class="action">6 recommendations generated</span><span class="actor">LLM</span></div>\
+  <div class="decision-row"><span class="ts">01:00:25</span><span class="action">Safeguard check queued</span><span class="actor">policy</span></div>';
+}
+
+function selectReco(card,id){
+  if(appState.incidentCompleted)return;
+  var cards=document.querySelectorAll('.reco-card');
+  for(var i=0;i<cards.length;i++)cards[i].classList.remove('selected');
+  card.classList.add('selected');
+  appState.selectedReco=id;
+  document.getElementById('outcomeSection').style.display='block';
+  document.getElementById('selectedReco').value=recoNames[id];
+  checkRecordReady();
+}
+
+function checkRecordReady(){
+  var btn=document.getElementById('recordBtn');var sel=document.getElementById('outcomeSelect');
+  if(appState.selectedReco&&sel.value){btn.disabled=false;btn.textContent='Record outcome and complete incident';}
+}
+document.addEventListener('change',function(e){if(e.target&&e.target.id==='outcomeSelect')checkRecordReady();});
+
+function recordOutcome(){
+  if(!appState.selectedReco)return;
+  var outcome=document.getElementById('outcomeSelect').value;
+  var fraudAmt=parseFloat(document.getElementById('fraudAmount').value)||0;
+  var fpCost=parseFloat(document.getElementById('fpCost').value)||0;
+  document.getElementById('outcomeSection').style.display='none';
+  document.getElementById('outcomeRecorded').style.display='block';
+  document.getElementById('finalAction').textContent=recoNames[appState.selectedReco];
+  document.getElementById('finalFraudAmt').textContent='\u20B9'+fraudAmt.toLocaleString('en-IN',{minimumFractionDigits:2});
+  document.getElementById('finalFpCost').textContent='\u20B9'+fpCost.toLocaleString('en-IN',{minimumFractionDigits:2});
+  appState.incidentCompleted=true;
+  // Mark incident as completed in data
+  var inc=incidents.find(function(i){return i.id===appState.activeIncidentId;});
+  if(inc){inc.status='Completed';}
+  // Add to decision history
+  var dh=document.getElementById('decisionHistory');
+  if(dh){
+    var now=new Date();var ts=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+    dh.innerHTML+='<div class="decision-row"><span class="ts">'+ts+'</span><span class="action">Recommendation selected: '+recoNames[appState.selectedReco]+'</span><span class="actor">'+appState.user+'</span></div>';
+    dh.innerHTML+='<div class="decision-row"><span class="ts">'+ts+'</span><span class="action">Outcome recorded: '+outcome+'</span><span class="actor">'+appState.user+'</span></div>';
+    dh.innerHTML+='<div class="decision-row"><span class="ts">'+ts+'</span><span class="action">Incident completed &mdash; lifecycle closed</span><span class="actor">system</span></div>';
+  }
+  var cards=document.querySelectorAll('.reco-card');
+  for(var i=0;i<cards.length;i++){cards[i].style.pointerEvents='none';cards[i].style.opacity='0.6';}
+  var sc=document.querySelector('.reco-card.selected');if(sc)sc.style.opacity='1';
+}
+
+// Auth gate: if not logged in, show login modal; otherwise navigate
+var authed=false;
+function requireAuth(page){
+  if(authed){navigate(page);return;}
+  // Store intended destination and show login
+  appState.intendedPage=page;
+  showLogin();
+}
+function scrollToSection(id){if(id==='howitworks'){requireAuth('howitworks');return;}if(id==='governance'){requireAuth('models');return;}alert('Section: '+id);}
+
+// =========================================================
+// INIT
+// =========================================================
+window.addEventListener('DOMContentLoaded',function(){
+  injectChrome();drawChart();
+  // Seed initial transactions
+  var tbody=document.getElementById('txTableBody');
+  if(tbody){
+    var seedTx=[['04:40:07','TXN-8a3f','\u20B91,537','0.000'],['04:38:12','TXN-7c2e','\u20B92,184','0.000'],['04:23:46','TXN-5b9a','\u20B9720','0.000'],['04:08:36','TXN-3d1f','\u20B91,050','0.000'],['03:57:06','TXN-1e7c','\u20B94,200','1.000']];
+    seedTx.forEach(function(r,i){
+      var tr=document.createElement('tr');tr.style.animationDelay=(i*0.1)+'s';
+      var riskClass=r[3]==='1.000'?'risk-high':'risk-zero';
+      tr.innerHTML='<td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td class="'+riskClass+'">'+r[3]+'</td>';
+      tbody.appendChild(tr);
+    });
+  }
+});
+</script>
+</body>
+</html>
